@@ -17,10 +17,10 @@ public class SecurityConfig {
         // Our cookie uses SameSite=Strict, which covers the same attack.
         http.csrf(csrf -> csrf.disable());
 
-        // Anyone can open the test route and the auth routes (login, me, logout).
+        // Anyone can open the test route, the auth routes (login, me, logout) and the movie routes.
         // /me and logout check the cookie themselves. Everything else needs a login.
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/hello", "/api/auth/login", "/api/auth/me", "/api/auth/logout").permitAll()
+                .requestMatchers("/api/hello", "/api/auth/login", "/api/auth/me", "/api/auth/logout", "/api/movies/**").permitAll()
                 .anyRequest().authenticated());
         return http.build();
     }
