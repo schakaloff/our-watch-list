@@ -1,16 +1,30 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-
-type Mode = "signin" | "signup";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const [mode, setMode] = useState<Mode>("signin");
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  function onSubmit(e: FormEvent) {
+  // Sends the email and password to the backend. The browser keeps the login cookie itself.
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    // No login logic yet: this is only the page.
+    setError(null);
+
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (res.ok) {
+      navigate("/");
+    } else {
+      const data = await res.json();
+      setError(data.message);
+    }
   }
 
   const inputClass =
@@ -18,14 +32,8 @@ export default function Login() {
 
   return (
     <div className="mx-auto mt-10 max-w-sm rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-lg">
-      <h1 className="mb-1 text-2xl font-bold">
-        {mode === "signin" ? "Welcome back" : "Create account"}
-      </h1>
-      <p className="mb-6 text-sm text-slate-400">
-        {mode === "signin"
-          ? "Sign in to your watch list."
-          : "Sign up to start your watch list."}
-      </p>
+      <h1 className="mb-1 text-2xl font-bold">Welcome back</h1>
+      <p className="mb-6 text-sm text-slate-400">Sign in to your watch list.</p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
@@ -58,24 +66,15 @@ export default function Login() {
           />
         </div>
 
+        {error && <p className="text-sm text-red-400">{error}</p>}
+
         <button
           type="submit"
           className="w-full rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
         >
-          {mode === "signin" ? "Sign in" : "Sign up"}
+          Sign in
         </button>
       </form>
-
-      <p className="mt-4 text-center text-sm text-slate-400">
-        {mode === "signin" ? "No account?" : "Already have an account?"}{" "}
-        <button
-          type="button"
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="font-medium text-emerald-400 hover:underline"
-        >
-          {mode === "signin" ? "Sign up" : "Sign in"}
-        </button>
-      </p>
     </div>
   );
 }
