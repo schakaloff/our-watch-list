@@ -6,7 +6,9 @@ package com.ourwatchlist.backend.controllers;
 import com.ourwatchlist.backend.dto.SignInRequest;
 import com.ourwatchlist.backend.dto.SignInResponse;
 import com.ourwatchlist.backend.dto.SupabaseUser;
+import com.ourwatchlist.backend.security.RateLimiter;
 import com.ourwatchlist.backend.services.SupabaseAuthService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,21 +28,34 @@ import java.util.Map;
 public class AuthController {
 
     private final SupabaseAuthService supabase;
+    // True in production (HTTPS only), false on your own computer. Set with the COOKIE_SECURE setting.
+    private final boolean cookieSecure;
+    private final RateLimiter rateLimiter;
 
     // Spring passes in the Supabase service here, so the controller can use it.
-    public AuthController(SupabaseAuthService supabase){
+    public AuthController(SupabaseAuthService supabase, RateLimiter rateLimiter,
+            @Value("${supabase.cookie-secure:false}") boolean cookieSecure){
         this.supabase = supabase;
+        this.rateLimiter = rateLimiter;
+        this.cookieSecure = cookieSecure;
     }
 
     // Handles POST /api/auth/login.
     // Success: puts the token in a cookie and returns the user. Wrong password: returns 401.
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody SignInRequest body){
+        // Limits password guessing: 10 tries a minute for each email address.
+        String email = body.email() == null ? "" : body.email().trim().toLowerCase();
+        if (!rateLimiter.allow("login:" + email, 10, 60_000)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(Map.of("message", "Too many login attempts. Wait a minute and try again."));
+        }
+
         try{
             SignInResponse result = supabase.signIn(body.email(), body.password());
                 ResponseCookie cookie = ResponseCookie.from("access_token", result.accessToken())
                 .httpOnly(true)
-                .secure(false)
+                .secure(cookieSecure)
                 .sameSite("Strict")
                 .path("/")
                 .maxAge(result.expiresIn())
@@ -77,7 +92,7 @@ public class AuthController {
     public ResponseEntity<Void> logout(){
         ResponseCookie cookie = ResponseCookie.from("access_token", "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(cookieSecure)
                 .sameSite("Strict")
                 .path("/")
                 .maxAge(0)

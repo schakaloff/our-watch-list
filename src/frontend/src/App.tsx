@@ -37,7 +37,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="flex min-h-screen flex-col bg-slate-900 text-slate-100">
       <header className="border-b border-slate-800">
         <nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
           <span className="mr-auto text-lg font-bold">🎬 OurWatchList</span>
@@ -71,7 +71,7 @@ export default function App() {
           )}
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
         <Routes>
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Browse />} />
@@ -82,6 +82,14 @@ export default function App() {
           <Route path="/login" element={<Login />} />
         </Routes>
       </main>
+      {/* TMDB's terms require this credit wherever their data is used. */}
+      <footer className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-500">
+        This product uses the{" "}
+        <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="underline hover:text-slate-300">
+          TMDB
+        </a>{" "}
+        API but is not endorsed or certified by TMDB.
+      </footer>
     </div>
   );
 }

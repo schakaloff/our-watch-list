@@ -22,6 +22,7 @@ import com.ourwatchlist.backend.exception.ApiException;
 import com.ourwatchlist.backend.repository.GroupMemberRepository;
 import com.ourwatchlist.backend.repository.GroupMovieRepository;
 import com.ourwatchlist.backend.repository.GroupRepository;
+import com.ourwatchlist.backend.security.RateLimiter;
 
 @Service
 public class GroupService {
@@ -35,15 +36,17 @@ public class GroupService {
     private final GroupMemberRepository members;
     private final GroupMovieRepository movies;
     private final ProfileService profiles;
+    private final RateLimiter rateLimiter;
     private final SecureRandom random = new SecureRandom();
 
     // Spring passes in the repositories and the profile service here.
     public GroupService(GroupRepository groups, GroupMemberRepository members,
-            GroupMovieRepository movies, ProfileService profiles) {
+            GroupMovieRepository movies, ProfileService profiles, RateLimiter rateLimiter) {
         this.groups = groups;
         this.members = members;
         this.movies = movies;
         this.profiles = profiles;
+        this.rateLimiter = rateLimiter;
     }
 
     // Creates a group with a fresh invite code and adds the creator as its first member.
@@ -60,6 +63,10 @@ public class GroupService {
     // Adds the user to the group that owns this invite code, if there is room.
     @Transactional
     public GroupResponse joinGroup(UUID userId, String email, String code) {
+        // An invite code works like a password, so guessing it is limited to 10 tries a minute per person.
+        if (!rateLimiter.allow("join:" + userId, 10, 60_000)) {
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts. Wait a minute and try again.");
+        }
         String cleanCode = code == null ? "" : code.trim().toUpperCase();
 
         WatchGroup group = groups.findByInviteCode(cleanCode)
