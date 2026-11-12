@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Login from "./pages/Login";
+import Groups from "./pages/Groups";
+import Settings from "./pages/Settings";
+import { apiFetch } from "./lib/api";
 import Browse from "./pages/Browse";
 import MyList from "./pages/MyList";
 
@@ -12,20 +15,21 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [email, setEmail] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
 
-  // Asks the backend who is logged in. Runs on load and whenever the page changes (for example after login).
+  // Asks the backend who is logged in and what their display name is.
+  // Runs on load and whenever the page changes (for example after login).
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/profile")
       .then((res) => (res.ok ? res.json() : null))
-      .then((user) => setEmail(user ? user.email : null))
-      .catch(() => setEmail(null));
+      .then((profile) => setName(profile ? profile.displayName : null))
+      .catch(() => setName(null));
   }, [location.pathname]);
 
   // Tells the backend to delete the login cookie, then goes to the login page.
   async function signOut() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setEmail(null);
+    await apiFetch("/api/auth/logout", { method: "POST" });
+    setName(null);
     navigate("/login");
   }
 
@@ -40,9 +44,16 @@ export default function App() {
           <NavLink to="/list" className={linkClass}>
             My List
           </NavLink>
-          {email ? (
+          {name && (
+            <NavLink to="/groups" className={linkClass}>
+              Groups
+            </NavLink>
+          )}
+          {name ? (
             <>
-              <span className="text-sm text-slate-300">{email}</span>
+              <NavLink to="/settings" className={linkClass}>
+                {name}
+              </NavLink>
               <button
                 onClick={signOut}
                 className="rounded px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-700"
@@ -62,6 +73,8 @@ export default function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Browse />} />
           <Route path="/list" element={<MyList />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/settings" element={<Settings onSaved={setName} />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </main>

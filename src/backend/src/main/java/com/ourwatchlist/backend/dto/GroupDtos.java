@@ -10,10 +10,10 @@ public final class GroupDtos {
     private GroupDtos() {}
 
     // Body of "create a group".
-    public record CreateGroupRequest(String name, String displayName) {}
+    public record CreateGroupRequest(String name) {}
 
     // Body of "join a group with a code".
-    public record JoinGroupRequest(String code, String displayName) {}
+    public record JoinGroupRequest(String code) {}
 
     // One person in a group, as shown to the frontend.
     public record MemberResponse(UUID userId, String displayName) {}

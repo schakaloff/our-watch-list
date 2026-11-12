@@ -1,4 +1,4 @@
-// Runs before group requests. Reads the login cookie, asks Supabase who it belongs to,
+// Runs before group and profile requests. Reads the login cookie, asks Supabase who it belongs to,
 // and tells Spring Security who is calling. Without a valid cookie the user stays anonymous.
 package com.ourwatchlist.backend.security;
 
@@ -27,10 +27,11 @@ public class CookieAuthFilter extends OncePerRequestFilter {
         this.supabase = supabase;
     }
 
-    // Only group routes need to know who the user is, so other requests skip this filter.
+    // Only group and profile routes need to know who the user is, so other requests skip this filter.
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/groups");
+        String path = request.getRequestURI();
+        return !(path.startsWith("/api/groups") || path.startsWith("/api/profile"));
     }
 
     // Runs once per request: find the token, ask Supabase, remember the user.

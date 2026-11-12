@@ -17,9 +17,6 @@ public class GroupMember {
     @EmbeddedId
     private GroupMemberId id;
 
-    @Column(name = "display_name")
-    private String displayName;
-
     @Column(name = "joined_at")
     private Instant joinedAt = Instant.now();
 
@@ -27,13 +24,11 @@ public class GroupMember {
     protected GroupMember() {}
 
     // Used by our code when someone creates or joins a group.
-    public GroupMember(UUID groupId, UUID userId, String displayName) {
+    public GroupMember(UUID groupId, UUID userId) {
         this.id = new GroupMemberId(groupId, userId);
-        this.displayName = displayName;
     }
 
     public UUID getGroupId() { return id.groupId(); }
     public UUID getUserId() { return id.userId(); }
-    public String getDisplayName() { return displayName; }
     public Instant getJoinedAt() { return joinedAt; }
 }

@@ -32,13 +32,13 @@ public class GroupController {
     // Handles POST /api/groups. Creates a group and returns it with its invite code.
     @PostMapping
     public GroupResponse create(@AuthenticationPrincipal SupabaseUser user, @RequestBody CreateGroupRequest body) {
-        return groupService.createGroup(UUID.fromString(user.id()), body.name(), body.displayName());
+        return groupService.createGroup(UUID.fromString(user.id()), user.email(), body.name());
     }
 
     // Handles POST /api/groups/join. Joins the group that owns the invite code.
     @PostMapping("/join")
     public GroupResponse join(@AuthenticationPrincipal SupabaseUser user, @RequestBody JoinGroupRequest body) {
-        return groupService.joinGroup(UUID.fromString(user.id()), body.code(), body.displayName());
+        return groupService.joinGroup(UUID.fromString(user.id()), user.email(), body.code());
     }
 
     // Handles GET /api/groups. Lists the groups the logged-in user belongs to.

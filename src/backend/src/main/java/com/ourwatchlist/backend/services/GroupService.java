@@ -3,7 +3,6 @@
 package com.ourwatchlist.backend.services;
 
 import java.security.SecureRandom;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -30,29 +29,30 @@ public class GroupService {
 
     private final GroupRepository groups;
     private final GroupMemberRepository members;
+    private final ProfileService profiles;
     private final SecureRandom random = new SecureRandom();
 
-    // Spring passes in the repositories here.
-    public GroupService(GroupRepository groups, GroupMemberRepository members) {
+    // Spring passes in the repositories and the profile service here.
+    public GroupService(GroupRepository groups, GroupMemberRepository members, ProfileService profiles) {
         this.groups = groups;
         this.members = members;
+        this.profiles = profiles;
     }
 
     // Creates a group with a fresh invite code and adds the creator as its first member.
     @Transactional
-    public GroupResponse createGroup(UUID userId, String name, String displayName) {
+    public GroupResponse createGroup(UUID userId, String email, String name) {
         String cleanName = clean(name, "Group name", 50);
-        String cleanDisplay = clean(displayName, "Your name", 30);
+        profiles.getOrCreate(userId, email);
 
         WatchGroup group = groups.save(new WatchGroup(cleanName, newInviteCode(), userId));
-        members.save(new GroupMember(group.getId(), userId, cleanDisplay));
+        members.save(new GroupMember(group.getId(), userId));
         return toResponse(group);
     }
 
     // Adds the user to the group that owns this invite code, if there is room.
     @Transactional
-    public GroupResponse joinGroup(UUID userId, String code, String displayName) {
-        String cleanDisplay = clean(displayName, "Your name", 30);
+    public GroupResponse joinGroup(UUID userId, String email, String code) {
         String cleanCode = code == null ? "" : code.trim().toUpperCase();
 
         WatchGroup group = groups.findByInviteCode(cleanCode)
@@ -65,7 +65,8 @@ public class GroupService {
             throw new ApiException(HttpStatus.CONFLICT, "This group is full");
         }
 
-        members.save(new GroupMember(group.getId(), userId, cleanDisplay));
+        profiles.getOrCreate(userId, email);
+        members.save(new GroupMember(group.getId(), userId));
         return toResponse(group);
     }
 
@@ -85,13 +86,10 @@ public class GroupService {
         }
     }
 
-    // Maps each member's user id to their display name. Used to label ratings.
+    // Maps each member's user id to their display name (from their profile). Used to label ratings.
     public Map<UUID, String> displayNames(UUID groupId) {
-        Map<UUID, String> names = new HashMap<>();
-        for (GroupMember member : members.findByIdGroupId(groupId)) {
-            names.put(member.getUserId(), member.getDisplayName());
-        }
-        return names;
+        List<UUID> userIds = members.findByIdGroupId(groupId).stream().map(GroupMember::getUserId).toList();
+        return profiles.displayNames(userIds);
     }
 
     // Builds a code that no other group uses yet.
@@ -109,8 +107,10 @@ public class GroupService {
 
     // Turns a group into the shape the frontend receives, including its members.
     private GroupResponse toResponse(WatchGroup group) {
-        List<MemberResponse> memberList = members.findByIdGroupId(group.getId()).stream()
-                .map(m -> new MemberResponse(m.getUserId(), m.getDisplayName()))
+        List<GroupMember> memberRows = members.findByIdGroupId(group.getId());
+        Map<UUID, String> names = profiles.displayNames(memberRows.stream().map(GroupMember::getUserId).toList());
+        List<MemberResponse> memberList = memberRows.stream()
+                .map(m -> new MemberResponse(m.getUserId(), names.get(m.getUserId())))
                 .toList();
         return new GroupResponse(group.getId(), group.getName(), group.getInviteCode(), memberList);
     }

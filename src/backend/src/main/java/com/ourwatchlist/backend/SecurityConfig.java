@@ -19,9 +19,11 @@ public class SecurityConfig {
     // Needed because Spring Security blocks everything by default.
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http, SupabaseAuthService supabase) throws Exception {
-        // Turn off CSRF tokens, otherwise every POST (like login) is rejected with 403.
-        // Our cookie uses SameSite=Strict, which covers the same attack.
-        http.csrf(csrf -> csrf.disable());
+        // CSRF protection: every POST/PUT/PATCH/DELETE must carry a token, or it is rejected with 403.
+        // spa() is the setup for React apps: the token is sent in a readable XSRF-TOKEN cookie,
+        // and the frontend copies it into an X-XSRF-TOKEN header. A site on another domain cannot read it.
+        // Login is the one exception, because the user has no login cookie yet to abuse.
+        http.csrf(csrf -> csrf.spa().ignoringRequestMatchers("/api/auth/login"));
 
         // Before each group request, find out who is calling from the login cookie.
         http.addFilterBefore(new CookieAuthFilter(supabase), UsernamePasswordAuthenticationFilter.class);
@@ -30,9 +32,11 @@ public class SecurityConfig {
         http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
         // Anyone can open the test route, the auth routes (login, me, logout) and the movie routes.
-        // /me and logout check the cookie themselves. Everything else (like /api/groups/**) needs a login.
+        // /me and logout check the cookie themselves. /error is Spring's own error page: it must be open,
+        // or a rejected request (like a missing CSRF token) would show 401 instead of its real status.
+        // Everything else (like /api/groups/**) needs a login.
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/hello", "/api/auth/login", "/api/auth/me", "/api/auth/logout", "/api/movies/**").permitAll()
+                .requestMatchers("/api/hello", "/api/auth/login", "/api/auth/me", "/api/auth/logout", "/api/movies/**", "/error").permitAll()
                 .anyRequest().authenticated());
         return http.build();
     }
