@@ -34,3 +34,27 @@ export interface Profile {
   displayName: string;
   username: string | null;
 }
+
+// One person's score and notes for a movie.
+export interface MemberRating {
+  userId: string;
+  displayName: string;
+  score: number;
+  notes: string | null;
+}
+
+// A movie on a group's shared list, as the backend sends it.
+export interface GroupMovie {
+  id: number;
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+  releaseYear: number | null;
+  tmdbRating: number | null;
+  overview: string | null;
+  status: Status;
+  addedBy: string;
+  addedAt: string;
+  watchedAt: string | null;
+  ratings: MemberRating[];
+}

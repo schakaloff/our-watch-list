@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import { clearCache } from "../lib/cache";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Login() {
     });
 
     if (res.ok) {
+      clearCache();
       navigate("/home");
     } else {
       const data = await res.json();

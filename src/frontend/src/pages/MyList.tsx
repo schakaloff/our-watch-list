@@ -1,51 +1,62 @@
-import { useState } from "react";
-import MovieCard from "../components/MovieCard";
-import MovieDetailModal from "../components/MovieDetailModal";
-import type { SavedMovie, Status } from "../types";
+import { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { apiFetch } from "../lib/api";
+import { getCached } from "../lib/cache";
+import type { Group } from "../types";
 
-const tabs: { key: Status; label: string }[] = [
-  { key: "want", label: "Want to watch" },
-  { key: "watched", label: "Watched" },
-];
-
-const movies: SavedMovie[] = [];
-
+// "My List" in the top bar. It sends you to your first group's list,
+// or tells you what to do if you are logged out or not in a group yet.
 export default function MyList() {
-  const [tab, setTab] = useState<Status>("want");
-  const [selected, setSelected] = useState<SavedMovie | null>(null);
-  const shown = movies.filter((m) => m.status === tab);
+  // If we already know your groups, go straight to the first one without waiting.
+  const known = getCached<Group[]>("groups");
+  const [state, setState] = useState<"loading" | "loggedOut" | "noGroups" | "ready">(known && known.length > 0 ? "ready" : "loading");
+  const [firstGroupId, setFirstGroupId] = useState<string | null>(known && known.length > 0 ? known[0].id : null);
+
+  useEffect(() => {
+    apiFetch("/api/groups")
+      .then(async (res) => {
+        if (res.status === 401) {
+          setState("loggedOut");
+          return;
+        }
+        const groups: Group[] = await res.json();
+        if (groups.length === 0) {
+          setState("noGroups");
+        } else {
+          setFirstGroupId(groups[0].id);
+          setState("ready");
+        }
+      })
+      .catch(() => setState("loggedOut"));
+  }, []);
+
+  if (state === "ready" && firstGroupId) {
+    return <Navigate to={`/groups/${firstGroupId}`} replace />;
+  }
+
+  if (state === "loading") {
+    return <p className="text-slate-400">Loading…</p>;
+  }
+
+  if (state === "loggedOut") {
+    return (
+      <p className="text-slate-400">
+        Please{" "}
+        <Link to="/login" className="text-emerald-400 hover:underline">
+          sign in
+        </Link>{" "}
+        to see your list.
+      </p>
+    );
+  }
 
   return (
-    <div>
-      <div className="mb-6 flex gap-2">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`rounded px-4 py-2 text-sm font-medium ${
-              tab === t.key ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-            }`}
-          >
-            {t.label} ({movies.filter((m) => m.status === t.key).length})
-          </button>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {shown.map((m) => (
-          <MovieCard
-            key={m.id}
-            title={m.title}
-            year={m.year}
-            poster={m.poster}
-            rating={m.myRating ?? m.tmdbRating}
-            actionLabel="Remove"
-            onOpen={() => setSelected(m)}
-          />
-        ))}
-      </div>
-
-      {selected && <MovieDetailModal movie={selected} onClose={() => setSelected(null)} />}
-    </div>
+    <p className="text-slate-400">
+      You are not in a group yet.{" "}
+      <Link to="/groups" className="text-emerald-400 hover:underline">
+        Create or join one
+      </Link>
+      .
+    </p>
   );
 }

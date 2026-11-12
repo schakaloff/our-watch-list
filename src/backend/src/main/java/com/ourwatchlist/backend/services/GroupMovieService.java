@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -36,7 +37,8 @@ public class GroupMovieService {
 
     // The group's whole list, newest first, with everyone's ratings on each movie.
     public List<MovieResponse> list(UUID userId, UUID groupId) {
-        groupService.requireMember(userId, groupId);
+        // Checks membership and loads the names in one go.
+        Map<UUID, String> names = groupService.memberNames(userId, groupId);
 
         List<GroupMovie> list = movies.findByGroupIdOrderByAddedAtDesc(groupId);
         if (list.isEmpty()) {
@@ -45,7 +47,6 @@ public class GroupMovieService {
 
         // Load all ratings for these movies in one query, then sort them by movie.
         List<Long> movieIds = list.stream().map(GroupMovie::getId).toList();
-        Map<UUID, String> names = groupService.displayNames(groupId);
         Map<Long, List<RatingResponse>> ratingsByMovie = new HashMap<>();
         for (Rating r : ratings.findByIdGroupMovieIdIn(movieIds)) {
             ratingsByMovie
@@ -65,13 +66,15 @@ public class GroupMovieService {
         if (request.tmdbId() <= 0 || request.title() == null || request.title().isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "A movie needs an id and a title");
         }
-        if (movies.existsByGroupIdAndTmdbId(groupId, request.tmdbId())) {
+        // No separate "is it already there?" query: the database refuses a duplicate itself
+        // (the unique rule on group + movie), which saves a round trip on every add.
+        try {
+            GroupMovie saved = movies.save(new GroupMovie(groupId, request.tmdbId(), request.title().trim(),
+                    request.posterPath(), request.releaseYear(), request.tmdbRating(), request.overview(), userId));
+            return toResponse(saved, List.of());
+        } catch (DataIntegrityViolationException e) {
             throw new ApiException(HttpStatus.CONFLICT, "This movie is already on your list");
         }
-
-        GroupMovie saved = movies.save(new GroupMovie(groupId, request.tmdbId(), request.title().trim(),
-                request.posterPath(), request.releaseYear(), request.tmdbRating(), request.overview(), userId));
-        return toResponse(saved, List.of());
     }
 
     // Takes a movie off the list. Any member of the group may do this.

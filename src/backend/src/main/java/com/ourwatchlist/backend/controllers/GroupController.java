@@ -3,6 +3,7 @@
 package com.ourwatchlist.backend.controllers;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,6 +40,12 @@ public class GroupController {
     @PostMapping("/join")
     public GroupResponse join(@AuthenticationPrincipal SupabaseUser user, @RequestBody JoinGroupRequest body) {
         return groupService.joinGroup(UUID.fromString(user.id()), user.email(), body.code());
+    }
+
+    // Handles GET /api/groups/saved. For each of your groups, the TMDB ids of the movies already on its list.
+    @GetMapping("/saved")
+    public Map<UUID, List<Integer>> saved(@AuthenticationPrincipal SupabaseUser user) {
+        return groupService.savedTmdbIds(UUID.fromString(user.id()));
     }
 
     // Handles GET /api/groups. Lists the groups the logged-in user belongs to.

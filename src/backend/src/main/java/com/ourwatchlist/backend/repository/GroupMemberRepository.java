@@ -2,6 +2,7 @@
 // The key has two parts, so "Id" in a method name means the key (Id + GroupId = id.groupId).
 package com.ourwatchlist.backend.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,9 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, GroupM
 
     // All members of one group (at most two for a couple).
     List<GroupMember> findByIdGroupId(UUID groupId);
+
+    // The members of many groups in one query, so listing groups does not need a query per group.
+    List<GroupMember> findByIdGroupIdIn(Collection<UUID> groupIds);
 
     // All groups a user belongs to.
     List<GroupMember> findByIdUserId(UUID userId);

@@ -3,6 +3,8 @@
 package com.ourwatchlist.backend.services;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -14,9 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ourwatchlist.backend.dto.GroupDtos.GroupResponse;
 import com.ourwatchlist.backend.dto.GroupDtos.MemberResponse;
 import com.ourwatchlist.backend.entity.GroupMember;
+import com.ourwatchlist.backend.entity.GroupMovie;
 import com.ourwatchlist.backend.entity.WatchGroup;
 import com.ourwatchlist.backend.exception.ApiException;
 import com.ourwatchlist.backend.repository.GroupMemberRepository;
+import com.ourwatchlist.backend.repository.GroupMovieRepository;
 import com.ourwatchlist.backend.repository.GroupRepository;
 
 @Service
@@ -29,13 +33,16 @@ public class GroupService {
 
     private final GroupRepository groups;
     private final GroupMemberRepository members;
+    private final GroupMovieRepository movies;
     private final ProfileService profiles;
     private final SecureRandom random = new SecureRandom();
 
     // Spring passes in the repositories and the profile service here.
-    public GroupService(GroupRepository groups, GroupMemberRepository members, ProfileService profiles) {
+    public GroupService(GroupRepository groups, GroupMemberRepository members,
+            GroupMovieRepository movies, ProfileService profiles) {
         this.groups = groups;
         this.members = members;
+        this.movies = movies;
         this.profiles = profiles;
     }
 
@@ -70,12 +77,29 @@ public class GroupService {
         return toResponse(group);
     }
 
-    // All groups the user belongs to.
+    // All groups the user belongs to. Always 4 queries, however many groups there are.
     public List<GroupResponse> myGroups(UUID userId) {
         List<UUID> groupIds = members.findByIdUserId(userId).stream()
                 .map(GroupMember::getGroupId)
                 .toList();
-        return groups.findAllById(groupIds).stream().map(this::toResponse).toList();
+        return toResponses(groups.findAllById(groupIds));
+    }
+
+    // For each of the user's groups, the TMDB ids of the movies already on its list.
+    // The home page uses this to show which movies are already added, in one request.
+    public Map<UUID, List<Integer>> savedTmdbIds(UUID userId) {
+        List<UUID> groupIds = members.findByIdUserId(userId).stream()
+                .map(GroupMember::getGroupId)
+                .toList();
+
+        Map<UUID, List<Integer>> saved = new HashMap<>();
+        for (UUID groupId : groupIds) {
+            saved.put(groupId, new ArrayList<>());
+        }
+        for (GroupMovie movie : movies.findByGroupIdIn(groupIds)) {
+            saved.get(movie.getGroupId()).add(movie.getTmdbId());
+        }
+        return saved;
     }
 
     // Stops the request unless the user is in this group.
@@ -86,7 +110,17 @@ public class GroupService {
         }
     }
 
-    // Maps each member's user id to their display name (from their profile). Used to label ratings.
+    // Checks the user is in the group and returns every member's display name, in just two queries.
+    // Used to label ratings. Like requireMember, it says "not found" to outsiders.
+    public Map<UUID, String> memberNames(UUID userId, UUID groupId) {
+        List<UUID> userIds = members.findByIdGroupId(groupId).stream().map(GroupMember::getUserId).toList();
+        if (!userIds.contains(userId)) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Group not found");
+        }
+        return profiles.displayNames(userIds);
+    }
+
+    // Same as memberNames, without the membership check. Used for ratings the user just saved.
     public Map<UUID, String> displayNames(UUID groupId) {
         List<UUID> userIds = members.findByIdGroupId(groupId).stream().map(GroupMember::getUserId).toList();
         return profiles.displayNames(userIds);
@@ -105,14 +139,27 @@ public class GroupService {
         }
     }
 
-    // Turns a group into the shape the frontend receives, including its members.
+    // Turns one group into the shape the frontend receives, including its members.
     private GroupResponse toResponse(WatchGroup group) {
-        List<GroupMember> memberRows = members.findByIdGroupId(group.getId());
-        Map<UUID, String> names = profiles.displayNames(memberRows.stream().map(GroupMember::getUserId).toList());
-        List<MemberResponse> memberList = memberRows.stream()
-                .map(m -> new MemberResponse(m.getUserId(), names.get(m.getUserId())))
+        return toResponses(List.of(group)).get(0);
+    }
+
+    // Turns many groups into responses using just 2 queries: all their members at once,
+    // then all those people's names at once.
+    private List<GroupResponse> toResponses(List<WatchGroup> groupList) {
+        List<UUID> groupIds = groupList.stream().map(WatchGroup::getId).toList();
+        List<GroupMember> memberRows = members.findByIdGroupIdIn(groupIds);
+        Map<UUID, String> names = profiles.displayNames(memberRows.stream().map(GroupMember::getUserId).distinct().toList());
+
+        return groupList.stream()
+                .map(group -> {
+                    List<MemberResponse> memberList = memberRows.stream()
+                            .filter(m -> m.getGroupId().equals(group.getId()))
+                            .map(m -> new MemberResponse(m.getUserId(), names.get(m.getUserId())))
+                            .toList();
+                    return new GroupResponse(group.getId(), group.getName(), group.getInviteCode(), memberList);
+                })
                 .toList();
-        return new GroupResponse(group.getId(), group.getName(), group.getInviteCode(), memberList);
     }
 
     // Trims the text and rejects it if it is empty or too long.

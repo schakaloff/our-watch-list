@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Groups from "./pages/Groups";
+import GroupList from "./pages/GroupList";
 import Settings from "./pages/Settings";
 import { apiFetch } from "./lib/api";
+import { clearCache } from "./lib/cache";
 import Browse from "./pages/Browse";
 import MyList from "./pages/MyList";
 
@@ -29,6 +31,7 @@ export default function App() {
   // Tells the backend to delete the login cookie, then goes to the login page.
   async function signOut() {
     await apiFetch("/api/auth/logout", { method: "POST" });
+    clearCache();
     setName(null);
     navigate("/login");
   }
@@ -45,7 +48,7 @@ export default function App() {
             My List
           </NavLink>
           {name && (
-            <NavLink to="/groups" className={linkClass}>
+            <NavLink to="/groups" end className={linkClass}>
               Groups
             </NavLink>
           )}
@@ -74,6 +77,7 @@ export default function App() {
           <Route path="/home" element={<Browse />} />
           <Route path="/list" element={<MyList />} />
           <Route path="/groups" element={<Groups />} />
+          <Route path="/groups/:groupId" element={<GroupList />} />
           <Route path="/settings" element={<Settings onSaved={setName} />} />
           <Route path="/login" element={<Login />} />
         </Routes>

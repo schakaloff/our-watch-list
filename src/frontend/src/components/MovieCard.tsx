@@ -4,6 +4,8 @@ interface MovieCardProps {
   poster: string | null;
   rating: number;
   actionLabel: string;
+  actionDisabled?: boolean;
+  onAction?: () => void;
   onOpen: () => void;
 }
 
@@ -13,6 +15,8 @@ export default function MovieCard({
   poster,
   rating,
   actionLabel,
+  actionDisabled,
+  onAction,
   onOpen,
 }: MovieCardProps) {
   const img = poster;
@@ -35,7 +39,9 @@ export default function MovieCard({
           {year ?? "—"} · ★ {rating.toFixed(1)}
         </p>
         <button
-          className="mt-auto rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+          onClick={onAction}
+          disabled={actionDisabled}
+          className="mt-auto rounded bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 disabled:cursor-default disabled:bg-slate-600"
         >
           {actionLabel}
         </button>

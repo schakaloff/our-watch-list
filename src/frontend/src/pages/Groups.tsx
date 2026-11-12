@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
+import { getCached, setCached } from "../lib/cache";
 import type { Group } from "../types";
 
 const inputClass =
@@ -11,8 +12,10 @@ const buttonClass =
 
 // Lists your groups and lets you create one or join your partner's with a code.
 export default function Groups() {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Start from the groups we saw last time, so the page does not wait for the backend.
+  const cached = getCached<Group[]>("groups");
+  const [groups, setGroups] = useState<Group[]>(cached ?? []);
+  const [loading, setLoading] = useState(cached === undefined);
   const [loggedIn, setLoggedIn] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +28,9 @@ export default function Groups() {
     if (res.status === 401) {
       setLoggedIn(false);
     } else if (res.ok) {
-      setGroups(await res.json());
+      const list: Group[] = await res.json();
+      setCached("groups", list);
+      setGroups(list);
     }
   }
 
@@ -103,6 +108,9 @@ export default function Groups() {
               {g.members.length < 2 && (
                 <p className="mt-2 text-xs text-slate-500">Waiting for your partner. Share this code with them.</p>
               )}
+              <Link to={`/groups/${g.id}`} className="mt-3 inline-block text-sm font-medium text-emerald-400 hover:underline">
+                Open list →
+              </Link>
             </div>
           ))}
         </div>
