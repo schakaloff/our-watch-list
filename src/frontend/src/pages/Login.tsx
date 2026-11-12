@@ -20,7 +20,7 @@ export default function Login() {
     });
 
     if (res.ok) {
-      navigate("/");
+      navigate("/home");
     } else {
       const data = await res.json();
       setError(data.message);

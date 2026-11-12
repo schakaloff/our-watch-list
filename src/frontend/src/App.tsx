@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Browse from "./pages/Browse";
 import MyList from "./pages/MyList";
@@ -34,8 +34,8 @@ export default function App() {
       <header className="border-b border-slate-800">
         <nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
           <span className="mr-auto text-lg font-bold">🎬 OurWatchList</span>
-          <NavLink to="/" end className={linkClass}>
-            Browse
+          <NavLink to="/home" className={linkClass}>
+            Home
           </NavLink>
           <NavLink to="/list" className={linkClass}>
             My List
@@ -59,7 +59,8 @@ export default function App() {
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">
         <Routes>
-          <Route path="/" element={<Browse />} />
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Browse />} />
           <Route path="/list" element={<MyList />} />
           <Route path="/login" element={<Login />} />
         </Routes>
