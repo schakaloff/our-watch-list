@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import GroupMovieCard from "../components/GroupMovieCard";
+import GroupMovieModal from "../components/GroupMovieModal";
 import { apiFetch } from "../lib/api";
 import { forget, getCached, setCached } from "../lib/cache";
-import type { Group, GroupMovie, Status } from "../types";
+import type { Group, GroupMovie, MemberRating, Status } from "../types";
 
 const tabs: { key: Status; label: string }[] = [
   { key: "want", label: "Want to watch" },
@@ -25,13 +26,19 @@ export default function GroupList() {
     cachedGroups && cachedMovies ? "ready" : "loading",
   );
   const [error, setError] = useState<string | null>(null);
+  // The movie whose popup is open, and your own user id (to tell which rating is yours).
+  const [openMovieId, setOpenMovieId] = useState<number | null>(null);
+  const [myId, setMyId] = useState<string | null>(getCached<string>("myId") ?? null);
 
   // Loads the user's groups (for the header) and this group's movies.
   const load = useCallback(async () => {
     // Ask for both at the same time, so the page waits for one round trip and not two.
-    const [groupsRes, moviesRes] = await Promise.all([
+    // Your own id is only asked for the first time, then remembered.
+    const knownId = getCached<string>("myId");
+    const [groupsRes, moviesRes, meRes] = await Promise.all([
       apiFetch("/api/groups"),
       apiFetch(`/api/groups/${groupId}/movies`),
+      knownId ? null : apiFetch("/api/auth/me"),
     ]);
     if (groupsRes.status === 401) {
       setState("loggedOut");
@@ -45,6 +52,11 @@ export default function GroupList() {
     const movieList: GroupMovie[] = await moviesRes.json();
     setCached("groups", groupList);
     setCached(`movies:${groupId}`, movieList);
+    if (meRes && meRes.ok) {
+      const me: { id: string } = await meRes.json();
+      setCached("myId", me.id);
+      setMyId(me.id);
+    }
     setGroups(groupList);
     setMovies(movieList);
     setState("ready");
@@ -69,6 +81,15 @@ export default function GroupList() {
   function updateMovies(next: GroupMovie[]) {
     setMovies(next);
     setCached(`movies:${groupId}`, next);
+  }
+
+  // Adds a just-saved rating to the movie, replacing your earlier one if there was one.
+  function saveRating(movieId: number, rating: MemberRating) {
+    updateMovies(
+      movies.map((m) =>
+        m.id === movieId ? { ...m, ratings: [...m.ratings.filter((r) => r.userId !== rating.userId), rating] } : m,
+      ),
+    );
   }
 
   // Moves a movie between "want" and "watched". The screen changes at once;
@@ -139,6 +160,7 @@ export default function GroupList() {
   }
 
   const shown = movies.filter((m) => m.status === tab);
+  const openMovie = movies.find((m) => m.id === openMovieId) ?? null;
 
   return (
     <div>
@@ -206,9 +228,23 @@ export default function GroupList() {
               members={group.members}
               onStatusChange={(status) => changeStatus(m, status)}
               onRemove={() => remove(m)}
+              onOpen={() => setOpenMovieId(m.id)}
             />
           ))}
         </div>
+      )}
+
+      {openMovie && (
+        <GroupMovieModal
+          // Starts fresh if your id arrives after the popup opened, so your own rating is filled in.
+          key={myId ?? "unknown"}
+          movie={openMovie}
+          members={group.members}
+          myId={myId}
+          groupId={group.id}
+          onSaved={saveRating}
+          onClose={() => setOpenMovieId(null)}
+        />
       )}
     </div>
   );

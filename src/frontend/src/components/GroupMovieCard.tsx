@@ -6,32 +6,33 @@ interface Props {
   members: Member[];
   onStatusChange: (status: "want" | "watched") => void;
   onRemove: () => void;
+  onOpen: () => void;
 }
 
 // A movie on the shared list: poster, details, each person's score, and the buttons to
 // move it between "want" and "watched" or take it off the list.
-export default function GroupMovieCard({ movie, members, onStatusChange, onRemove }: Props) {
+export default function GroupMovieCard({ movie, members, onStatusChange, onRemove, onOpen }: Props) {
   const watched = movie.status === "watched";
 
   return (
     <div className="flex flex-col overflow-hidden rounded-lg bg-slate-800 shadow">
-      <div className="aspect-[2/3] w-full bg-slate-700">
+      <button onClick={onOpen} className="block aspect-[2/3] w-full cursor-pointer bg-slate-700">
         {movie.posterPath ? (
           <img src={IMAGE_URL + movie.posterPath} alt={movie.title} className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full items-center justify-center p-2 text-sm text-slate-400">No poster</span>
         )}
-      </div>
+      </button>
 
       <div className="flex flex-1 flex-col gap-2 p-3">
-        <div>
+        <button onClick={onOpen} className="cursor-pointer text-left">
           <h3 className="truncate font-semibold text-slate-100" title={movie.title}>
             {movie.title}
           </h3>
           <p className="text-sm text-slate-400">
             {movie.releaseYear ?? "—"} · TMDB ★ {movie.tmdbRating?.toFixed(1) ?? "—"}
           </p>
-        </div>
+        </button>
 
         {/* Each member's own score, or a dash if they have not rated it yet. */}
         <ul className="space-y-0.5 text-sm">
