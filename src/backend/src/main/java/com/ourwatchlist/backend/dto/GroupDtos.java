@@ -18,6 +18,7 @@ public final class GroupDtos {
     // One person in a group, as shown to the frontend.
     public record MemberResponse(UUID userId, String displayName) {}
 
-    // A group with its invite code and members.
-    public record GroupResponse(UUID id, String name, String inviteCode, List<MemberResponse> members) {}
+    // A group with its invite code and members. "owner" is true when the person asking created it,
+    // which is who may delete it.
+    public record GroupResponse(UUID id, String name, String inviteCode, boolean owner, List<MemberResponse> members) {}
 }

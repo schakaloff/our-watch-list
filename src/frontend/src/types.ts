@@ -25,6 +25,8 @@ export interface Group {
   id: string;
   name: string;
   inviteCode: string;
+  // True when you created the group, which is who may delete it.
+  owner: boolean;
   members: Member[];
 }
 

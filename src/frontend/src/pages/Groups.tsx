@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { getCached, setCached } from "../lib/cache";
+import { deleteGroup, deleteWarning } from "../lib/groupActions";
 import type { Group } from "../types";
 
 const inputClass =
@@ -48,6 +49,20 @@ export default function Groups() {
       return;
     }
     reset();
+    await loadGroups();
+  }
+
+  // Deletes a group you created, after asking. Then the list of groups is loaded again.
+  async function onDelete(group: Group) {
+    if (!window.confirm(deleteWarning(group.name))) {
+      return;
+    }
+    setError(null);
+    const message = await deleteGroup(group.id);
+    if (message) {
+      setError(message);
+      return;
+    }
     await loadGroups();
   }
 
@@ -108,9 +123,19 @@ export default function Groups() {
               {g.members.length < 2 && (
                 <p className="mt-2 text-xs text-slate-500">Waiting for your partner. Share this code with them.</p>
               )}
-              <Link to={`/groups/${g.id}`} className="mt-3 inline-block text-sm font-medium text-emerald-400 hover:underline">
-                Open list →
-              </Link>
+              <div className="mt-3 flex items-center justify-between">
+                <Link to={`/groups/${g.id}`} className="text-sm font-medium text-emerald-400 hover:underline">
+                  Open list →
+                </Link>
+                {g.owner && (
+                  <button
+                    onClick={() => onDelete(g)}
+                    className="text-sm text-slate-500 hover:text-red-400"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

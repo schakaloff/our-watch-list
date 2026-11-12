@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import GroupMovieCard from "../components/GroupMovieCard";
 import GroupMovieModal from "../components/GroupMovieModal";
 import { apiFetch } from "../lib/api";
 import { forget, getCached, setCached } from "../lib/cache";
+import { deleteGroup, deleteWarning } from "../lib/groupActions";
 import type { Group, GroupMovie, MemberRating, Status } from "../types";
 
 const tabs: { key: Status; label: string }[] = [
@@ -14,6 +15,7 @@ const tabs: { key: Status; label: string }[] = [
 // The shared list of one group, with a "Want to watch" tab and a "Watched" tab.
 export default function GroupList() {
   const { groupId } = useParams();
+  const navigate = useNavigate();
 
   // Start from what we saw last time, so the page does not wait for the backend.
   const cachedGroups = getCached<Group[]>("groups");
@@ -81,6 +83,20 @@ export default function GroupList() {
   function updateMovies(next: GroupMovie[]) {
     setMovies(next);
     setCached(`movies:${groupId}`, next);
+  }
+
+  // Deletes this whole group after asking, then goes back to the list of groups.
+  async function removeGroup(name: string) {
+    if (!window.confirm(deleteWarning(name))) {
+      return;
+    }
+    setError(null);
+    const message = await deleteGroup(groupId ?? "");
+    if (message) {
+      setError(message);
+      return;
+    }
+    navigate("/groups");
   }
 
   // Adds a just-saved rating to the movie, replacing your earlier one if there was one.
@@ -165,7 +181,17 @@ export default function GroupList() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">{group.name}</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-2xl font-bold">{group.name}</h1>
+          {group.owner && (
+            <button
+              onClick={() => removeGroup(group.name)}
+              className="rounded border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-red-700 hover:text-red-400"
+            >
+              Delete group
+            </button>
+          )}
+        </div>
         <p className="text-sm text-slate-400">
           {group.members.map((m) => m.displayName).join(" & ")}
           {group.members.length < 2 && (

@@ -54,7 +54,7 @@ public class GroupService {
 
         WatchGroup group = groups.save(new WatchGroup(cleanName, newInviteCode(), userId));
         members.save(new GroupMember(group.getId(), userId));
-        return toResponse(group);
+        return toResponse(group, userId);
     }
 
     // Adds the user to the group that owns this invite code, if there is room.
@@ -74,7 +74,7 @@ public class GroupService {
 
         profiles.getOrCreate(userId, email);
         members.save(new GroupMember(group.getId(), userId));
-        return toResponse(group);
+        return toResponse(group, userId);
     }
 
     // All groups the user belongs to. Always 4 queries, however many groups there are.
@@ -82,7 +82,20 @@ public class GroupService {
         List<UUID> groupIds = members.findByIdUserId(userId).stream()
                 .map(GroupMember::getGroupId)
                 .toList();
-        return toResponses(groups.findAllById(groupIds));
+        return toResponses(groups.findAllById(groupIds), userId);
+    }
+
+    // Deletes a group together with its movies, ratings and members (the database removes those
+    // automatically). Only the person who created the group may do this.
+    public void deleteGroup(UUID userId, UUID groupId) {
+        requireMember(userId, groupId);
+
+        WatchGroup group = groups.findById(groupId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Group not found"));
+        if (!group.getCreatedBy().equals(userId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Only the person who created the group can delete it");
+        }
+        groups.delete(group);
     }
 
     // For each of the user's groups, the TMDB ids of the movies already on its list.
@@ -140,13 +153,13 @@ public class GroupService {
     }
 
     // Turns one group into the shape the frontend receives, including its members.
-    private GroupResponse toResponse(WatchGroup group) {
-        return toResponses(List.of(group)).get(0);
+    private GroupResponse toResponse(WatchGroup group, UUID viewerId) {
+        return toResponses(List.of(group), viewerId).get(0);
     }
 
     // Turns many groups into responses using just 2 queries: all their members at once,
     // then all those people's names at once.
-    private List<GroupResponse> toResponses(List<WatchGroup> groupList) {
+    private List<GroupResponse> toResponses(List<WatchGroup> groupList, UUID viewerId) {
         List<UUID> groupIds = groupList.stream().map(WatchGroup::getId).toList();
         List<GroupMember> memberRows = members.findByIdGroupIdIn(groupIds);
         Map<UUID, String> names = profiles.displayNames(memberRows.stream().map(GroupMember::getUserId).distinct().toList());
@@ -157,7 +170,8 @@ public class GroupService {
                             .filter(m -> m.getGroupId().equals(group.getId()))
                             .map(m -> new MemberResponse(m.getUserId(), names.get(m.getUserId())))
                             .toList();
-                    return new GroupResponse(group.getId(), group.getName(), group.getInviteCode(), memberList);
+                    boolean owner = group.getCreatedBy().equals(viewerId);
+                    return new GroupResponse(group.getId(), group.getName(), group.getInviteCode(), owner, memberList);
                 })
                 .toList();
     }

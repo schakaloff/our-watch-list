@@ -45,7 +45,7 @@ export default function App() {
             Home
           </NavLink>
           <NavLink to="/list" className={linkClass}>
-            My List
+            Group List
           </NavLink>
           {name && (
             <NavLink to="/groups" end className={linkClass}>
