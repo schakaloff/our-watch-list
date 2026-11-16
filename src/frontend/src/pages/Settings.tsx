@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import type { Profile } from "../types";
@@ -14,6 +15,7 @@ interface Props {
 
 // Your profile: display name and username are editable, the email is shown only.
 export default function Settings({ onSaved }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -59,30 +61,29 @@ export default function Settings({ onSaved }: Props) {
   }
 
   if (loading) {
-    return <p className="text-slate-400">Loading…</p>;
+    return <p className="text-slate-400">{t("common.loading")}</p>;
   }
 
   if (!loggedIn) {
     return (
       <p className="text-slate-400">
-        Please{" "}
-        <Link to="/login" className="text-emerald-400 hover:underline">
-          sign in
-        </Link>{" "}
-        to see your settings.
+        <Trans
+          i18nKey="settings.pleaseSignIn"
+          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+        />
       </p>
     );
   }
 
   return (
     <div className="mx-auto mt-6 max-w-md rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-lg">
-      <h1 className="mb-1 text-2xl font-bold">Settings</h1>
-      <p className="mb-6 text-sm text-slate-400">This is how your partner sees you.</p>
+      <h1 className="mb-1 text-2xl font-bold">{t("settings.title")}</h1>
+      <p className="mb-6 text-sm text-slate-400">{t("settings.subtitle")}</p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label htmlFor="displayName" className="mb-1 block text-sm text-slate-300">
-            Display name
+            {t("settings.displayName")}
           </label>
           <input
             id="displayName"
@@ -96,20 +97,20 @@ export default function Settings({ onSaved }: Props) {
 
         <div>
           <label htmlFor="username" className="mb-1 block text-sm text-slate-300">
-            Username <span className="text-slate-500">(optional)</span>
+            {t("settings.username")} <span className="text-slate-500">{t("settings.optional")}</span>
           </label>
           <input
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="3-20 letters, digits or _"
+            placeholder={t("settings.usernamePlaceholder")}
             className={inputClass}
           />
         </div>
 
         <div>
           <label htmlFor="email" className="mb-1 block text-sm text-slate-300">
-            Email
+            {t("settings.email")}
           </label>
           <input
             id="email"
@@ -120,13 +121,13 @@ export default function Settings({ onSaved }: Props) {
         </div>
 
         {error && <p className="text-sm text-red-400">{error}</p>}
-        {saved && <p className="text-sm text-emerald-400">Saved.</p>}
+        {saved && <p className="text-sm text-emerald-400">{t("common.saved")}</p>}
 
         <button
           type="submit"
           className="w-full rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
         >
-          Save
+          {t("settings.save")}
         </button>
       </form>
     </div>

@@ -1,9 +1,11 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { clearCache } from "../lib/cache";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,13 +36,13 @@ export default function Login() {
 
   return (
     <div className="mx-auto mt-10 max-w-sm rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-lg">
-      <h1 className="mb-1 text-2xl font-bold">Welcome back</h1>
-      <p className="mb-6 text-sm text-slate-400">Sign in to your watch list.</p>
+      <h1 className="mb-1 text-2xl font-bold">{t("login.title")}</h1>
+      <p className="mb-6 text-sm text-slate-400">{t("login.subtitle")}</p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="mb-1 block text-sm text-slate-300">
-            Email
+            {t("login.email")}
           </label>
           <input
             id="email"
@@ -54,7 +56,7 @@ export default function Login() {
         </div>
         <div>
           <label htmlFor="password" className="mb-1 block text-sm text-slate-300">
-            Password
+            {t("login.password")}
           </label>
           <input
             id="password"
@@ -74,7 +76,7 @@ export default function Login() {
           type="submit"
           className="w-full rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
         >
-          Sign in
+          {t("login.submit")}
         </button>
       </form>
     </div>

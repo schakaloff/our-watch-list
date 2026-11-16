@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { IMAGE_URL } from "../lib/tmdb";
 import type { GroupMovie, Member } from "../types";
 
@@ -12,6 +13,7 @@ interface Props {
 // A movie on the shared list: poster, details, each person's score, and the buttons to
 // move it between "want" and "watched" or take it off the list.
 export default function GroupMovieCard({ movie, members, onStatusChange, onRemove, onOpen }: Props) {
+  const { t } = useTranslation();
   const watched = movie.status === "watched";
 
   return (
@@ -20,7 +22,7 @@ export default function GroupMovieCard({ movie, members, onStatusChange, onRemov
         {movie.posterPath ? (
           <img src={IMAGE_URL + movie.posterPath} alt={movie.title} className="h-full w-full object-cover" />
         ) : (
-          <span className="flex h-full items-center justify-center p-2 text-sm text-slate-400">No poster</span>
+          <span className="flex h-full items-center justify-center p-2 text-sm text-slate-400">{t("common.noPoster")}</span>
         )}
       </button>
 
@@ -30,7 +32,7 @@ export default function GroupMovieCard({ movie, members, onStatusChange, onRemov
             {movie.title}
           </h3>
           <p className="text-sm text-slate-400">
-            {movie.releaseYear ?? "—"} · TMDB ★ {movie.tmdbRating?.toFixed(1) ?? "—"}
+            {movie.releaseYear ?? "—"} · {t("movie.tmdb", { rating: movie.tmdbRating?.toFixed(1) ?? "—" })}
           </p>
         </button>
 
@@ -54,13 +56,13 @@ export default function GroupMovieCard({ movie, members, onStatusChange, onRemov
             onClick={() => onStatusChange(watched ? "want" : "watched")}
             className="flex-1 rounded bg-emerald-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-emerald-500"
           >
-            {watched ? "Move back" : "Mark watched"}
+            {watched ? t("list.moveBack") : t("list.markWatched")}
           </button>
           <button
             onClick={onRemove}
             className="rounded bg-slate-700 px-2 py-1.5 text-xs font-medium text-slate-300 hover:bg-red-700 hover:text-white"
           >
-            Remove
+            {t("common.remove")}
           </button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Group } from "../types";
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 // A small popup that asks which group a movie should be added to.
 export default function GroupPicker({ movieTitle, groups, onPick, onClose }: Props) {
+  const { t } = useTranslation();
   return (
     <div
       className="fixed inset-0 z-10 flex items-center justify-center bg-black/70 p-4"
@@ -18,7 +20,7 @@ export default function GroupPicker({ movieTitle, groups, onPick, onClose }: Pro
         className="w-full max-w-sm rounded-lg bg-slate-800 p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-1 text-lg font-bold">Add to which group?</h2>
+        <h2 className="mb-1 text-lg font-bold">{t("picker.title")}</h2>
         <p className="mb-4 truncate text-sm text-slate-400">{movieTitle}</p>
 
         <div className="space-y-2">
@@ -37,7 +39,7 @@ export default function GroupPicker({ movieTitle, groups, onPick, onClose }: Pro
         </div>
 
         <button onClick={onClose} className="mt-4 text-sm text-slate-400 hover:text-white">
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     </div>

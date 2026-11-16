@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { apiFetch } from "../lib/api";
 import { IMAGE_URL } from "../lib/tmdb";
 import type { GroupMovie, Member, MemberRating } from "../types";
@@ -17,6 +18,7 @@ interface Props {
 // The popup for one movie on the shared list: its details, your partner's score and notes,
 // and the box where you give your own score (1 to 10) and notes.
 export default function GroupMovieModal({ movie, members, myId, groupId, onSaved, onClose }: Props) {
+  const { t } = useTranslation();
   const mine = movie.ratings.find((r) => r.userId === myId);
   const [score, setScore] = useState(mine?.score ?? 0);
   const [notes, setNotes] = useState(mine?.notes ?? "");
@@ -45,7 +47,7 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
       onSaved(movie.id, data);
       setSaved(true);
     } catch {
-      setError("Could not reach the server. Try again.");
+      setError(t("common.serverUnreachable"));
     } finally {
       setSaving(false);
     }
@@ -74,7 +76,7 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
               {movie.title}{" "}
               {movie.releaseYear && <span className="font-normal text-slate-400">({movie.releaseYear})</span>}
             </h2>
-            <p className="text-sm text-slate-400">TMDB ★ {movie.tmdbRating?.toFixed(1) ?? "—"}</p>
+            <p className="text-sm text-slate-400">{t("movie.tmdb", { rating: movie.tmdbRating?.toFixed(1) ?? "—" })}</p>
           </div>
 
           {movie.overview && <p className="text-sm text-slate-300">{movie.overview}</p>}
@@ -89,7 +91,7 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
                   {rating ? (
                     <span className="text-emerald-400">★ {rating.score}</span>
                   ) : (
-                    <span className="font-normal text-slate-500">has not rated it yet</span>
+                    <span className="font-normal text-slate-500">{t("movie.notRated")}</span>
                   )}
                 </p>
                 {rating?.notes && <p className="mt-1 italic text-slate-400">"{rating.notes}"</p>}
@@ -101,7 +103,7 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
           {myId ? (
             <div className="space-y-3">
               <div>
-                <p className="mb-1 text-sm text-slate-300">Your score</p>
+                <p className="mb-1 text-sm text-slate-300">{t("movie.yourScore")}</p>
                 <div className="flex flex-wrap gap-1">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                     <button
@@ -120,13 +122,13 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Your notes…"
+                placeholder={t("movie.yourNotes")}
                 rows={3}
                 className="w-full rounded border border-slate-700 bg-slate-900 p-2 text-sm text-slate-100 placeholder:text-slate-500"
               />
 
               {error && <p className="text-sm text-red-400">{error}</p>}
-              {saved && <p className="text-sm text-emerald-400">Saved.</p>}
+              {saved && <p className="text-sm text-emerald-400">{t("common.saved")}</p>}
 
               <div className="flex gap-2">
                 <button
@@ -134,16 +136,16 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
                   disabled={score === 0 || saving}
                   className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:cursor-default disabled:bg-slate-600"
                 >
-                  {saving ? "Saving…" : "Save"}
+                  {saving ? t("common.saving") : t("common.save")}
                 </button>
                 <button onClick={onClose} className="ml-auto rounded px-4 py-2 text-sm text-slate-400 hover:text-white">
-                  Close
+                  {t("common.close")}
                 </button>
               </div>
             </div>
           ) : (
             <button onClick={onClose} className="self-end rounded px-4 py-2 text-sm text-slate-400 hover:text-white">
-              Close
+              {t("common.close")}
             </button>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { SavedMovie, Status } from "../types";
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export default function MovieDetailModal({ movie, onClose }: Props) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<Status>(movie.status);
   const [myRating, setMyRating] = useState(movie.myRating ?? 0);
   const [notes, setNotes] = useState(movie.notes ?? "");
@@ -28,8 +30,8 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
           <h2 className="text-xl font-bold">
             {movie.title} {movie.year && <span className="font-normal text-slate-400">({movie.year})</span>}
           </h2>
-          <p className="text-sm text-slate-400">TMDB ★ {movie.tmdbRating.toFixed(1)}</p>
-          <p className="text-sm text-slate-300">{movie.overview || "No description."}</p>
+          <p className="text-sm text-slate-400">{t("movie.tmdb", { rating: movie.tmdbRating.toFixed(1) })}</p>
+          <p className="text-sm text-slate-300">{movie.overview || t("movie.noDescription")}</p>
 
           <div className="flex gap-2">
             {(["want", "watched"] as Status[]).map((s) => (
@@ -40,14 +42,14 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
                   status === s ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300"
                 }`}
               >
-                {s === "want" ? "Want to watch" : "Watched"}
+                {s === "want" ? t("list.tabWant") : t("list.tabWatched")}
               </button>
             ))}
           </div>
 
           {status === "watched" && (
             <label className="text-sm text-slate-300">
-              My rating:{" "}
+              {t("movie.myRating")}{" "}
               <select
                 value={myRating}
                 onChange={(e) => setMyRating(Number(e.target.value))}
@@ -66,7 +68,7 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Notes…"
+            placeholder={t("movie.notes")}
             rows={3}
             className="rounded border border-slate-700 bg-slate-900 p-2 text-sm text-slate-100 placeholder:text-slate-500"
           />
@@ -76,16 +78,16 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
               onClick={onClose}
               className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
             >
-              Save
+              {t("common.save")}
             </button>
             <button
               onClick={onClose}
               className="rounded bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
             >
-              Remove
+              {t("common.remove")}
             </button>
             <button onClick={onClose} className="ml-auto rounded px-4 py-2 text-sm text-slate-400 hover:text-white">
-              Close
+              {t("common.close")}
             </button>
           </div>
         </div>

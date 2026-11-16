@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import GroupMovieCard from "../components/GroupMovieCard";
 import GroupMovieModal from "../components/GroupMovieModal";
 import { apiFetch } from "../lib/api";
 import { forget, getCached, setCached } from "../lib/cache";
-import { deleteGroup, deleteWarning } from "../lib/groupActions";
+import { deleteGroup } from "../lib/groupActions";
 import type { Group, GroupMovie, MemberRating, Status } from "../types";
 
+// The label is a translation key, looked up when the tabs are drawn.
 const tabs: { key: Status; label: string }[] = [
-  { key: "want", label: "Want to watch" },
-  { key: "watched", label: "Watched" },
+  { key: "want", label: "list.tabWant" },
+  { key: "watched", label: "list.tabWatched" },
 ];
 
 // The shared list of one group, with a "Want to watch" tab and a "Watched" tab.
 export default function GroupList() {
+  const { t } = useTranslation();
   const { groupId } = useParams();
   const navigate = useNavigate();
 
@@ -87,7 +90,7 @@ export default function GroupList() {
 
   // Deletes this whole group after asking, then goes back to the list of groups.
   async function removeGroup(name: string) {
-    if (!window.confirm(deleteWarning(name))) {
+    if (!window.confirm(t("groups.deleteConfirm", { name }))) {
       return;
     }
     setError(null);
@@ -131,7 +134,7 @@ export default function GroupList() {
   // Takes a movie off the list after asking for confirmation. It disappears at once;
   // if the backend refuses, the real list is loaded again to bring it back.
   async function remove(movie: GroupMovie) {
-    if (!window.confirm(`Remove "${movie.title}" from the list?`)) {
+    if (!window.confirm(t("list.removeConfirm", { title: movie.title }))) {
       return;
     }
     setError(null);
@@ -147,17 +150,16 @@ export default function GroupList() {
   }
 
   if (state === "loading") {
-    return <p className="text-slate-400">Loading…</p>;
+    return <p className="text-slate-400">{t("common.loading")}</p>;
   }
 
   if (state === "loggedOut") {
     return (
       <p className="text-slate-400">
-        Please{" "}
-        <Link to="/login" className="text-emerald-400 hover:underline">
-          sign in
-        </Link>{" "}
-        to see your list.
+        <Trans
+          i18nKey="list.pleaseSignIn"
+          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+        />
       </p>
     );
   }
@@ -167,10 +169,10 @@ export default function GroupList() {
   if (state === "notFound" || !group) {
     return (
       <p className="text-slate-400">
-        We could not find that group.{" "}
-        <Link to="/groups" className="text-emerald-400 hover:underline">
-          Back to your groups
-        </Link>
+        <Trans
+          i18nKey="list.notFound"
+          components={{ go: <Link to="/groups" className="text-emerald-400 hover:underline" /> }}
+        />
       </p>
     );
   }
@@ -188,7 +190,7 @@ export default function GroupList() {
               onClick={() => removeGroup(group.name)}
               className="rounded border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-red-700 hover:text-red-400"
             >
-              Delete group
+              {t("groups.deleteGroup")}
             </button>
           )}
         </div>
@@ -197,7 +199,7 @@ export default function GroupList() {
           {group.members.length < 2 && (
             <span>
               {" "}
-              · waiting for your partner, invite code{" "}
+              · {t("list.waitingForPartner")}{" "}
               <span className="font-mono tracking-widest text-emerald-400">{group.inviteCode}</span>
             </span>
           )}
@@ -222,15 +224,15 @@ export default function GroupList() {
       </div>
 
       <div className="mb-6 flex gap-2">
-        {tabs.map((t) => (
+        {tabs.map((tab_) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tab_.key}
+            onClick={() => setTab(tab_.key)}
             className={`rounded px-4 py-2 text-sm font-medium ${
-              tab === t.key ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              tab === tab_.key ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
             }`}
           >
-            {t.label} ({movies.filter((m) => m.status === t.key).length})
+            {t(tab_.label)} ({movies.filter((m) => m.status === tab_.key).length})
           </button>
         ))}
       </div>
@@ -239,11 +241,10 @@ export default function GroupList() {
 
       {shown.length === 0 ? (
         <p className="text-slate-400">
-          Nothing here yet. Add movies from the{" "}
-          <Link to="/home" className="text-emerald-400 hover:underline">
-            Home
-          </Link>{" "}
-          page.
+          <Trans
+            i18nKey="list.empty"
+            components={{ go: <Link to="/home" className="text-emerald-400 hover:underline" /> }}
+          />
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 interface MovieCardProps {
   title: string;
   year: number | null;
@@ -19,6 +21,7 @@ export default function MovieCard({
   onAction,
   onOpen,
 }: MovieCardProps) {
+  const { t } = useTranslation();
   const img = poster;
   return (
     <div className="flex flex-col overflow-hidden rounded-lg bg-slate-800 shadow transition hover:shadow-lg">
@@ -27,7 +30,7 @@ export default function MovieCard({
           <img src={img} alt={title} className="h-full w-full object-cover" />
         ) : (
           <span className="flex h-full items-center justify-center p-2 text-sm text-slate-400">
-            No poster
+            {t("common.noPoster")}
           </span>
         )}
       </button>

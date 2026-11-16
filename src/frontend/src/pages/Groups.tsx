@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { getCached, setCached } from "../lib/cache";
-import { deleteGroup, deleteWarning } from "../lib/groupActions";
+import { deleteGroup } from "../lib/groupActions";
 import type { Group } from "../types";
 
 const inputClass =
@@ -13,6 +14,7 @@ const buttonClass =
 
 // Lists your groups and lets you create one or join your partner's with a code.
 export default function Groups() {
+  const { t } = useTranslation();
   // Start from the groups we saw last time, so the page does not wait for the backend.
   const cached = getCached<Group[]>("groups");
   const [groups, setGroups] = useState<Group[]>(cached ?? []);
@@ -54,7 +56,7 @@ export default function Groups() {
 
   // Deletes a group you created, after asking. Then the list of groups is loaded again.
   async function onDelete(group: Group) {
-    if (!window.confirm(deleteWarning(group.name))) {
+    if (!window.confirm(t("groups.deleteConfirm", { name: group.name }))) {
       return;
     }
     setError(null);
@@ -81,30 +83,29 @@ export default function Groups() {
   }
 
   if (loading) {
-    return <p className="text-slate-400">Loading…</p>;
+    return <p className="text-slate-400">{t("common.loading")}</p>;
   }
 
   if (!loggedIn) {
     return (
       <p className="text-slate-400">
-        Please{" "}
-        <Link to="/login" className="text-emerald-400 hover:underline">
-          sign in
-        </Link>{" "}
-        to see your groups.
+        <Trans
+          i18nKey="groups.pleaseSignIn"
+          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+        />
       </p>
     );
   }
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Your groups</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t("groups.title")}</h1>
 
       {error && <p className="mb-4 rounded bg-red-900/40 p-3 text-sm text-red-300">{error}</p>}
 
       {groups.length === 0 ? (
         <p className="mb-8 text-slate-400">
-          You are not in a group yet. Create one, or join your partner's with their code.
+          {t("groups.none")}
         </p>
       ) : (
         <div className="mb-8 grid gap-4 sm:grid-cols-2">
@@ -115,24 +116,24 @@ export default function Groups() {
                 {g.members.map((m) => m.displayName).join(" & ")} · {g.members.length}/2
               </p>
               <p className="text-sm text-slate-300">
-                Invite code:{" "}
+                {t("groups.inviteCode")}{" "}
                 <span className="rounded bg-slate-900 px-2 py-1 font-mono tracking-widest text-emerald-400">
                   {g.inviteCode}
                 </span>
               </p>
               {g.members.length < 2 && (
-                <p className="mt-2 text-xs text-slate-500">Waiting for your partner. Share this code with them.</p>
+                <p className="mt-2 text-xs text-slate-500">{t("groups.waiting")}</p>
               )}
               <div className="mt-3 flex items-center justify-between">
                 <Link to={`/groups/${g.id}`} className="text-sm font-medium text-emerald-400 hover:underline">
-                  Open list →
+                  {t("groups.openList")}
                 </Link>
                 {g.owner && (
                   <button
                     onClick={() => onDelete(g)}
                     className="text-sm text-slate-500 hover:text-red-400"
                   >
-                    Delete
+                    {t("groups.delete")}
                   </button>
                 )}
               </div>
@@ -143,27 +144,27 @@ export default function Groups() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <form onSubmit={onCreate} className="space-y-3 rounded-lg border border-slate-800 bg-slate-900 p-5">
-          <h2 className="text-lg font-semibold">Create a group</h2>
+          <h2 className="text-lg font-semibold">{t("groups.createTitle")}</h2>
           <input
             required
             value={createName}
             onChange={(e) => setCreateName(e.target.value)}
-            placeholder="Group name, e.g. Movie nights"
+            placeholder={t("groups.createPlaceholder")}
             className={inputClass}
           />
-          <button className={buttonClass}>Create</button>
+          <button className={buttonClass}>{t("groups.create")}</button>
         </form>
 
         <form onSubmit={onJoin} className="space-y-3 rounded-lg border border-slate-800 bg-slate-900 p-5">
-          <h2 className="text-lg font-semibold">Join with a code</h2>
+          <h2 className="text-lg font-semibold">{t("groups.joinTitle")}</h2>
           <input
             required
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
-            placeholder="Invite code"
+            placeholder={t("groups.joinPlaceholder")}
             className={`${inputClass} font-mono uppercase tracking-widest`}
           />
-          <button className={buttonClass}>Join</button>
+          <button className={buttonClass}>{t("groups.join")}</button>
         </form>
       </div>
     </div>

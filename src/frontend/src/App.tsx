@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import LanguageSwitcher from "./components/LanguageSwitcher";
 import Login from "./pages/Login";
 import Groups from "./pages/Groups";
 import GroupList from "./pages/GroupList";
@@ -10,11 +12,12 @@ import Browse from "./pages/Browse";
 import MyList from "./pages/MyList";
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded px-3 py-1.5 text-sm font-medium ${
+  `whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium ${
     isActive ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-700"
   }`;
 
 export default function App() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [name, setName] = useState<string | null>(null);
@@ -39,19 +42,20 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-900 text-slate-100">
       <header className="border-b border-slate-800">
-        <nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-          <span className="mr-auto text-lg font-bold">🎬 OurWatchList</span>
+        <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-4">
+          <span className="mr-auto whitespace-nowrap text-lg font-bold">🎬 OurWatchList</span>
           <NavLink to="/home" className={linkClass}>
-            Home
+            {t("nav.home")}
           </NavLink>
           <NavLink to="/list" className={linkClass}>
-            Group List
+            {t("nav.groupList")}
           </NavLink>
           {name && (
             <NavLink to="/groups" end className={linkClass}>
-              Groups
+              {t("nav.groups")}
             </NavLink>
           )}
+          <LanguageSwitcher />
           {name ? (
             <>
               <NavLink to="/settings" className={linkClass}>
@@ -61,12 +65,12 @@ export default function App() {
                 onClick={signOut}
                 className="rounded px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-700"
               >
-                Sign out
+                {t("nav.signOut")}
               </button>
             </>
           ) : (
             <NavLink to="/login" className={linkClass}>
-              Sign in
+              {t("nav.signIn")}
             </NavLink>
           )}
         </nav>
@@ -84,11 +88,14 @@ export default function App() {
       </main>
       {/* TMDB's terms require this credit wherever their data is used. */}
       <footer className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-500">
-        This product uses the{" "}
-        <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="underline hover:text-slate-300">
-          TMDB
-        </a>{" "}
-        API but is not endorsed or certified by TMDB.
+        <Trans
+          i18nKey="footer.credit"
+          components={{
+            tmdb: (
+              <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="underline hover:text-slate-300" />
+            ),
+          }}
+        />
       </footer>
     </div>
   );

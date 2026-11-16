@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import GroupPicker from "../components/GroupPicker";
 import MovieCard from "../components/MovieCard";
@@ -51,6 +52,7 @@ async function loadMovies(path: string): Promise<SavedMovie[]> {
 }
 
 export default function Browse() {
+  const { t } = useTranslation();
   // If the home page was open earlier, start from what it knew then, so nothing flashes or waits.
   const cached = getHomeData() ?? null;
 
@@ -129,7 +131,7 @@ export default function Browse() {
         popular.current = list;
         setMovies(list);
       })
-      .catch(() => setError("Could not load movies. Is the backend running?"));
+      .catch(() => setError(t("home.loadError")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -148,7 +150,7 @@ export default function Browse() {
       if (!text) popular.current = list;
       setMovies(list);
     } catch {
-      setError("Search failed. Is the backend running?");
+      setError(t("home.searchError"));
     }
   }
 
@@ -157,11 +159,11 @@ export default function Browse() {
     setNotice(null);
 
     if (!loggedIn) {
-      setNotice({ ok: false, text: "Sign in to add movies to a group.", linkTo: "/login", linkLabel: "Sign in" });
+      setNotice({ ok: false, text: t("home.signInToAdd"), linkTo: "/login", linkLabel: t("nav.signIn") });
       return;
     }
     if (groups.length === 0) {
-      setNotice({ ok: false, text: "Create a group first, then you can add movies.", linkTo: "/groups", linkLabel: "Go to Groups" });
+      setNotice({ ok: false, text: t("home.createGroupFirst"), linkTo: "/groups", linkLabel: t("home.goToGroups") });
       return;
     }
 
@@ -196,7 +198,12 @@ export default function Browse() {
       });
 
       if (res.ok) {
-        setNotice({ ok: true, text: `Added "${movie.title}" to ${group.name}.`, linkTo: `/groups/${group.id}`, linkLabel: "View list" });
+        setNotice({
+          ok: true,
+          text: t("home.addedTo", { movie: movie.title, group: group.name }),
+          linkTo: `/groups/${group.id}`,
+          linkLabel: t("home.viewList"),
+        });
         return;
       }
 
@@ -207,7 +214,7 @@ export default function Browse() {
       setNotice({ ok: false, text: (await res.json()).message });
     } catch {
       markAdded(group.id, movie.id, false);
-      setNotice({ ok: false, text: "Could not reach the server. Try again." });
+      setNotice({ ok: false, text: t("common.serverUnreachable") });
     }
   }
 
@@ -217,11 +224,11 @@ export default function Browse() {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search movies…"
-          className="flex-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
+          placeholder={t("home.searchPlaceholder")}
+          className="min-w-0 flex-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
         />
         <button className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">
-          Search
+          {t("home.search")}
         </button>
       </form>
 
@@ -250,7 +257,7 @@ export default function Browse() {
             year={m.year}
             poster={m.poster}
             rating={m.tmdbRating}
-            actionLabel={isAdded(m.id) ? "✓ Added" : "+ Add"}
+            actionLabel={isAdded(m.id) ? t("home.added") : t("home.add")}
             actionDisabled={!savedLoaded || isAdded(m.id)}
             onAction={() => onAdd(m)}
             onOpen={() => setSelected(m)}

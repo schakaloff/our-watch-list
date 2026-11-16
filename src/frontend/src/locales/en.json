@@ -1,0 +1,96 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "remove": "Remove",
+    "noPoster": "No poster",
+    "serverUnreachable": "Could not reach the server. Try again."
+  },
+  "nav": {
+    "home": "Home",
+    "groupList": "Group List",
+    "groups": "Groups",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "language": "Language"
+  },
+  "footer": {
+    "credit": "This product uses the <tmdb>TMDB</tmdb> API but is not endorsed or certified by TMDB."
+  },
+  "login": {
+    "title": "Welcome back",
+    "subtitle": "Sign in to your watch list.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in"
+  },
+  "home": {
+    "searchPlaceholder": "Search movies…",
+    "search": "Search",
+    "loadError": "Could not load movies. Is the backend running?",
+    "searchError": "Search failed. Is the backend running?",
+    "add": "+ Add",
+    "added": "✓ Added",
+    "signInToAdd": "Sign in to add movies to a group.",
+    "createGroupFirst": "Create a group first, then you can add movies.",
+    "goToGroups": "Go to Groups",
+    "addedTo": "Added \"{{movie}}\" to {{group}}.",
+    "viewList": "View list"
+  },
+  "picker": {
+    "title": "Add to which group?"
+  },
+  "groups": {
+    "pleaseSignIn": "Please <go>sign in</go> to see your groups.",
+    "title": "Your groups",
+    "none": "You are not in a group yet. Create one, or join your partner's with their code.",
+    "inviteCode": "Invite code:",
+    "waiting": "Waiting for your partner. Share this code with them.",
+    "openList": "Open list →",
+    "delete": "Delete",
+    "deleteGroup": "Delete group",
+    "deleteConfirm": "Delete \"{{name}}\"?\n\nThis permanently deletes the group, its whole movie list, and everyone's ratings and notes. This cannot be undone.",
+    "createTitle": "Create a group",
+    "createPlaceholder": "Group name, e.g. Movie nights",
+    "create": "Create",
+    "joinTitle": "Join with a code",
+    "joinPlaceholder": "Invite code",
+    "join": "Join"
+  },
+  "list": {
+    "pleaseSignIn": "Please <go>sign in</go> to see your list.",
+    "notInGroup": "You are not in a group yet. <go>Create or join one</go>.",
+    "notFound": "We could not find that group. <go>Back to your groups</go>",
+    "waitingForPartner": "waiting for your partner, invite code",
+    "tabWant": "Want to watch",
+    "tabWatched": "Watched",
+    "empty": "Nothing here yet. Add movies from the <go>Home</go> page.",
+    "removeConfirm": "Remove \"{{title}}\" from the list?",
+    "moveBack": "Move back",
+    "markWatched": "Mark watched"
+  },
+  "movie": {
+    "tmdb": "TMDB ★ {{rating}}",
+    "noDescription": "No description.",
+    "notRated": "has not rated it yet",
+    "yourScore": "Your score",
+    "yourNotes": "Your notes…",
+    "myRating": "My rating:",
+    "notes": "Notes…"
+  },
+  "settings": {
+    "pleaseSignIn": "Please <go>sign in</go> to see your settings.",
+    "title": "Settings",
+    "subtitle": "This is how your partner sees you.",
+    "displayName": "Display name",
+    "username": "Username",
+    "optional": "(optional)",
+    "usernamePlaceholder": "3-20 letters, digits or _",
+    "email": "Email",
+    "save": "Save"
+  }
+}

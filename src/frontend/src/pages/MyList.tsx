@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Link, Navigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { getCached } from "../lib/cache";
@@ -7,6 +8,7 @@ import type { Group } from "../types";
 // "My List" in the top bar. It sends you to your first group's list,
 // or tells you what to do if you are logged out or not in a group yet.
 export default function MyList() {
+  const { t } = useTranslation();
   // If we already know your groups, go straight to the first one without waiting.
   const known = getCached<Group[]>("groups");
   const [state, setState] = useState<"loading" | "loggedOut" | "noGroups" | "ready">(known && known.length > 0 ? "ready" : "loading");
@@ -35,28 +37,26 @@ export default function MyList() {
   }
 
   if (state === "loading") {
-    return <p className="text-slate-400">Loading…</p>;
+    return <p className="text-slate-400">{t("common.loading")}</p>;
   }
 
   if (state === "loggedOut") {
     return (
       <p className="text-slate-400">
-        Please{" "}
-        <Link to="/login" className="text-emerald-400 hover:underline">
-          sign in
-        </Link>{" "}
-        to see your list.
+        <Trans
+          i18nKey="list.pleaseSignIn"
+          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+        />
       </p>
     );
   }
 
   return (
     <p className="text-slate-400">
-      You are not in a group yet.{" "}
-      <Link to="/groups" className="text-emerald-400 hover:underline">
-        Create or join one
-      </Link>
-      .
+      <Trans
+        i18nKey="list.notInGroup"
+        components={{ go: <Link to="/groups" className="text-emerald-400 hover:underline" /> }}
+      />
     </p>
   );
 }
