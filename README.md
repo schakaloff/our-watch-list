@@ -35,7 +35,7 @@ The frontend only draws pages and calls `/api/...`. All secrets, data rules and 
 
 ## Security design
 
-- **Login cookie, not localStorage.** The access token is stored in an `HttpOnly`, `SameSite=Strict` cookie (and `Secure` in production), so scripts on the page cannot read it.
+- **Login cookies, not localStorage.** The access token (1 hour) and a refresh token (30 days, renewed whenever you use the site) are stored in `HttpOnly`, `SameSite=Strict` cookies (and `Secure` in production), so scripts on the page cannot read them. When the access token expires, the backend quietly renews it with the refresh token, so you stay logged in. Parallel requests share a single refresh, and signing out ends the session at Supabase.
 - **CSRF protection.** Every request that changes data must carry an `X-XSRF-TOKEN` header matching a cookie (Spring Security's SPA mode). Login is the only exception.
 - **Permission checks on every group route.** The backend confirms you belong to a group before showing or changing anything in it. Strangers get a plain "not found", so they cannot tell which groups exist. Movies are always looked up *inside* their group.
 - **Only the creator can delete a group**, checked on the server.

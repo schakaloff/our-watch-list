@@ -10,7 +10,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.ourwatchlist.backend.security.AuthCookies;
 import com.ourwatchlist.backend.security.CookieAuthFilter;
+import com.ourwatchlist.backend.security.SessionRefresher;
 import com.ourwatchlist.backend.services.SupabaseAuthService;
 
 @Configuration
@@ -18,15 +20,17 @@ public class SecurityConfig {
     // Builds the security rules Spring applies to every request.
     // Needed because Spring Security blocks everything by default.
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, SupabaseAuthService supabase) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, SupabaseAuthService supabase, SessionRefresher refresher,
+            AuthCookies cookies) throws Exception {
         // CSRF protection: every POST/PUT/PATCH/DELETE must carry a token, or it is rejected with 403.
         // spa() is the setup for React apps: the token is sent in a readable XSRF-TOKEN cookie,
         // and the frontend copies it into an X-XSRF-TOKEN header. A site on another domain cannot read it.
         // Login is the one exception, because the user has no login cookie yet to abuse.
         http.csrf(csrf -> csrf.spa().ignoringRequestMatchers("/api/auth/login"));
 
-        // Before each group request, find out who is calling from the login cookie.
-        http.addFilterBefore(new CookieAuthFilter(supabase), UsernamePasswordAuthenticationFilter.class);
+        // Before each group, profile and "who am I" request, find out who is calling from the login cookies
+        // (renewing an expired login with the refresh token).
+        http.addFilterBefore(new CookieAuthFilter(supabase, refresher, cookies), UsernamePasswordAuthenticationFilter.class);
 
         // Anonymous callers of protected routes get 401 (not logged in), not the default 403.
         http.exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
