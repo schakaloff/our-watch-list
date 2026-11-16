@@ -32,16 +32,16 @@ export default function Login() {
   }
 
   const inputClass =
-    "w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none";
+    "w-full rounded border border-line bg-surface px-3 py-2 text-sm text-white placeholder:text-faint focus:border-white focus:outline-none";
 
   return (
-    <div className="mx-auto mt-10 max-w-sm rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-lg">
+    <div className="mx-auto mt-10 max-w-sm rounded-lg border border-line bg-page p-6 shadow-lg">
       <h1 className="mb-1 text-2xl font-bold">{t("login.title")}</h1>
-      <p className="mb-6 text-sm text-slate-400">{t("login.subtitle")}</p>
+      <p className="mb-6 text-sm text-muted">{t("login.subtitle")}</p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm text-slate-300">
+          <label htmlFor="email" className="mb-1 block text-sm text-muted">
             {t("login.email")}
           </label>
           <input
@@ -55,7 +55,7 @@ export default function Login() {
           />
         </div>
         <div>
-          <label htmlFor="password" className="mb-1 block text-sm text-slate-300">
+          <label htmlFor="password" className="mb-1 block text-sm text-muted">
             {t("login.password")}
           </label>
           <input
@@ -74,7 +74,7 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+          className="w-full rounded bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/85"
         >
           {t("login.submit")}
         </button>

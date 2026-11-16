@@ -8,9 +8,9 @@ import { deleteGroup } from "../lib/groupActions";
 import type { Group } from "../types";
 
 const inputClass =
-  "w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none";
+  "w-full rounded border border-line bg-surface px-3 py-2 text-sm text-white placeholder:text-faint focus:border-white focus:outline-none";
 const buttonClass =
-  "w-full rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500";
+  "w-full rounded bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/85";
 
 // Lists your groups and lets you create one or join your partner's with a code.
 export default function Groups() {
@@ -83,15 +83,15 @@ export default function Groups() {
   }
 
   if (loading) {
-    return <p className="text-slate-400">{t("common.loading")}</p>;
+    return <p className="text-muted">{t("common.loading")}</p>;
   }
 
   if (!loggedIn) {
     return (
-      <p className="text-slate-400">
+      <p className="text-muted">
         <Trans
           i18nKey="groups.pleaseSignIn"
-          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+          components={{ go: <Link to="/login" className="text-white hover:underline" /> }}
         />
       </p>
     );
@@ -104,34 +104,34 @@ export default function Groups() {
       {error && <p className="mb-4 rounded bg-red-900/40 p-3 text-sm text-red-300">{error}</p>}
 
       {groups.length === 0 ? (
-        <p className="mb-8 text-slate-400">
+        <p className="mb-8 text-muted">
           {t("groups.none")}
         </p>
       ) : (
         <div className="mb-8 grid gap-4 sm:grid-cols-2">
           {groups.map((g) => (
-            <div key={g.id} className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
+            <div key={g.id} className="rounded-lg border border-line bg-surface p-4">
               <h2 className="mb-1 text-lg font-semibold">{g.name}</h2>
-              <p className="mb-3 text-sm text-slate-400">
+              <p className="mb-3 text-sm text-muted">
                 {g.members.map((m) => m.displayName).join(" & ")} · {g.members.length}/2
               </p>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-muted">
                 {t("groups.inviteCode")}{" "}
-                <span className="rounded bg-slate-900 px-2 py-1 font-mono tracking-widest text-emerald-400">
+                <span className="rounded bg-page px-2 py-1 font-mono tracking-widest text-white">
                   {g.inviteCode}
                 </span>
               </p>
               {g.members.length < 2 && (
-                <p className="mt-2 text-xs text-slate-500">{t("groups.waiting")}</p>
+                <p className="mt-2 text-xs text-faint">{t("groups.waiting")}</p>
               )}
               <div className="mt-3 flex items-center justify-between">
-                <Link to={`/groups/${g.id}`} className="text-sm font-medium text-emerald-400 hover:underline">
+                <Link to={`/groups/${g.id}`} className="text-sm font-medium text-white hover:underline">
                   {t("groups.openList")}
                 </Link>
                 {g.owner && (
                   <button
                     onClick={() => onDelete(g)}
-                    className="text-sm text-slate-500 hover:text-red-400"
+                    className="text-sm text-faint hover:text-red-400"
                   >
                     {t("groups.delete")}
                   </button>
@@ -143,7 +143,7 @@ export default function Groups() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2">
-        <form onSubmit={onCreate} className="space-y-3 rounded-lg border border-slate-800 bg-slate-900 p-5">
+        <form onSubmit={onCreate} className="space-y-3 rounded-lg border border-line bg-page p-5">
           <h2 className="text-lg font-semibold">{t("groups.createTitle")}</h2>
           <input
             required
@@ -155,7 +155,7 @@ export default function Groups() {
           <button className={buttonClass}>{t("groups.create")}</button>
         </form>
 
-        <form onSubmit={onJoin} className="space-y-3 rounded-lg border border-slate-800 bg-slate-900 p-5">
+        <form onSubmit={onJoin} className="space-y-3 rounded-lg border border-line bg-page p-5">
           <h2 className="text-lg font-semibold">{t("groups.joinTitle")}</h2>
           <input
             required

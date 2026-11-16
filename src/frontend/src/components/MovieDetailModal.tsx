@@ -20,7 +20,7 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-2xl gap-4 overflow-y-auto rounded-lg bg-slate-800 p-6"
+        className="flex max-h-[90vh] w-full max-w-2xl gap-4 overflow-y-auto rounded-lg bg-surface p-6"
         onClick={(e) => e.stopPropagation()}
       >
         {img && (
@@ -28,10 +28,10 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
         )}
         <div className="flex flex-1 flex-col gap-3">
           <h2 className="text-xl font-bold">
-            {movie.title} {movie.year && <span className="font-normal text-slate-400">({movie.year})</span>}
+            {movie.title} {movie.year && <span className="font-normal text-muted">({movie.year})</span>}
           </h2>
-          <p className="text-sm text-slate-400">{t("movie.tmdb", { rating: movie.tmdbRating.toFixed(1) })}</p>
-          <p className="text-sm text-slate-300">{movie.overview || t("movie.noDescription")}</p>
+          <p className="text-sm text-muted">{t("movie.tmdb", { rating: movie.tmdbRating.toFixed(1) })}</p>
+          <p className="text-sm text-muted">{movie.overview || t("movie.noDescription")}</p>
 
           <div className="flex gap-2">
             {(["want", "watched"] as Status[]).map((s) => (
@@ -39,7 +39,7 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
                 key={s}
                 onClick={() => setStatus(s)}
                 className={`rounded px-3 py-1.5 text-sm font-medium ${
-                  status === s ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300"
+                  status === s ? "bg-white text-black" : "bg-surface-2 text-muted"
                 }`}
               >
                 {s === "want" ? t("list.tabWant") : t("list.tabWatched")}
@@ -48,12 +48,12 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
           </div>
 
           {status === "watched" && (
-            <label className="text-sm text-slate-300">
+            <label className="text-sm text-muted">
               {t("movie.myRating")}{" "}
               <select
                 value={myRating}
                 onChange={(e) => setMyRating(Number(e.target.value))}
-                className="rounded bg-slate-700 px-2 py-1"
+                className="rounded bg-surface-2 px-2 py-1"
               >
                 <option value={0}>—</option>
                 {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
@@ -70,13 +70,13 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t("movie.notes")}
             rows={3}
-            className="rounded border border-slate-700 bg-slate-900 p-2 text-sm text-slate-100 placeholder:text-slate-500"
+            className="rounded border border-line bg-page p-2 text-sm text-white placeholder:text-faint"
           />
 
           <div className="mt-auto flex gap-2">
             <button
               onClick={onClose}
-              className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+              className="rounded bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/85"
             >
               {t("common.save")}
             </button>
@@ -86,7 +86,7 @@ export default function MovieDetailModal({ movie, onClose }: Props) {
             >
               {t("common.remove")}
             </button>
-            <button onClick={onClose} className="ml-auto rounded px-4 py-2 text-sm text-slate-400 hover:text-white">
+            <button onClick={onClose} className="ml-auto rounded px-4 py-2 text-sm text-muted hover:text-white">
               {t("common.close")}
             </button>
           </div>

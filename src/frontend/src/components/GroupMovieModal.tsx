@@ -29,6 +29,9 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
   // The other people in the group. For a couple, this is your partner.
   const others = members.filter((m) => m.userId !== myId);
 
+  // Ratings only exist for movies you have already watched.
+  const canRate = movie.status === "watched";
+
   // Sends your score and notes to the backend.
   async function save() {
     setError(null);
@@ -59,7 +62,7 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
       onClick={onClose}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-2xl gap-5 overflow-y-auto rounded-lg bg-slate-800 p-6"
+        className="flex max-h-[90vh] w-full max-w-2xl gap-5 overflow-y-auto rounded-lg bg-surface p-6"
         onClick={(e) => e.stopPropagation()}
       >
         {movie.posterPath && (
@@ -74,43 +77,43 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
           <div>
             <h2 className="text-xl font-bold">
               {movie.title}{" "}
-              {movie.releaseYear && <span className="font-normal text-slate-400">({movie.releaseYear})</span>}
+              {movie.releaseYear && <span className="font-normal text-muted">({movie.releaseYear})</span>}
             </h2>
-            <p className="text-sm text-slate-400">{t("movie.tmdb", { rating: movie.tmdbRating?.toFixed(1) ?? "—" })}</p>
+            <p className="text-sm text-muted">{t("movie.tmdb", { rating: movie.tmdbRating?.toFixed(1) ?? "—" })}</p>
           </div>
 
-          {movie.overview && <p className="text-sm text-slate-300">{movie.overview}</p>}
+          {movie.overview && <p className="text-sm text-muted">{movie.overview}</p>}
 
           {/* What the other person thought. */}
-          {others.map((m) => {
+          {canRate && others.map((m) => {
             const rating = movie.ratings.find((r) => r.userId === m.userId);
             return (
-              <div key={m.userId} className="rounded bg-slate-900 p-3 text-sm">
-                <p className="font-medium text-slate-200">
+              <div key={m.userId} className="rounded bg-page p-3 text-sm">
+                <p className="font-medium text-muted">
                   {m.displayName}:{" "}
                   {rating ? (
-                    <span className="text-emerald-400">★ {rating.score}</span>
+                    <span className="text-white">★ {rating.score}</span>
                   ) : (
-                    <span className="font-normal text-slate-500">{t("movie.notRated")}</span>
+                    <span className="font-normal text-faint">{t("movie.notRated")}</span>
                   )}
                 </p>
-                {rating?.notes && <p className="mt-1 italic text-slate-400">"{rating.notes}"</p>}
+                {rating?.notes && <p className="mt-1 italic text-muted">"{rating.notes}"</p>}
               </div>
             );
           })}
 
           {/* Your own score and notes. */}
-          {myId ? (
+          {canRate && myId ? (
             <div className="space-y-3">
               <div>
-                <p className="mb-1 text-sm text-slate-300">{t("movie.yourScore")}</p>
+                <p className="mb-1 text-sm text-muted">{t("movie.yourScore")}</p>
                 <div className="flex flex-wrap gap-1">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
                     <button
                       key={n}
                       onClick={() => setScore(n)}
                       className={`h-8 w-8 rounded text-sm font-medium ${
-                        score === n ? "bg-emerald-600 text-white" : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                        score === n ? "bg-white text-black" : "bg-surface-2 text-muted hover:bg-surface-2"
                       }`}
                     >
                       {n}
@@ -124,29 +127,32 @@ export default function GroupMovieModal({ movie, members, myId, groupId, onSaved
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t("movie.yourNotes")}
                 rows={3}
-                className="w-full rounded border border-slate-700 bg-slate-900 p-2 text-sm text-slate-100 placeholder:text-slate-500"
+                className="w-full rounded border border-line bg-page p-2 text-sm text-white placeholder:text-faint"
               />
 
               {error && <p className="text-sm text-red-400">{error}</p>}
-              {saved && <p className="text-sm text-emerald-400">{t("common.saved")}</p>}
+              {saved && <p className="text-sm text-white">{t("common.saved")}</p>}
 
               <div className="flex gap-2">
                 <button
                   onClick={save}
                   disabled={score === 0 || saving}
-                  className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:cursor-default disabled:bg-slate-600"
+                  className="rounded bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/85 disabled:cursor-default disabled:bg-white/20 disabled:text-white/60"
                 >
                   {saving ? t("common.saving") : t("common.save")}
                 </button>
-                <button onClick={onClose} className="ml-auto rounded px-4 py-2 text-sm text-slate-400 hover:text-white">
+                <button onClick={onClose} className="ml-auto rounded px-4 py-2 text-sm text-muted hover:text-white">
                   {t("common.close")}
                 </button>
               </div>
             </div>
           ) : (
-            <button onClick={onClose} className="self-end rounded px-4 py-2 text-sm text-slate-400 hover:text-white">
-              {t("common.close")}
-            </button>
+            <>
+              {!canRate && <p className="rounded bg-page p-3 text-sm text-muted">{t("movie.rateAfterWatching")}</p>}
+              <button onClick={onClose} className="self-end rounded px-4 py-2 text-sm text-muted hover:text-white">
+                {t("common.close")}
+              </button>
+            </>
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { Flame, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import GroupPicker from "../components/GroupPicker";
@@ -8,7 +9,7 @@ import MovieDetailModal from "../components/MovieDetailModal";
 import { apiFetch } from "../lib/api";
 import { forget, setCached } from "../lib/cache";
 import { getHomeData, setHomeData } from "../lib/homeCache";
-import { IMAGE_URL } from "../lib/tmdb";
+import { IMAGE_URL, IMAGE_URL_LARGE } from "../lib/tmdb";
 import type { Group, SavedMovie } from "../types";
 
 // One movie as the backend sends it. The field names come from TMDB.
@@ -60,6 +61,8 @@ export default function Browse() {
   // The popular movies only (not search results), which are what we remember for the next visit.
   const popular = useRef<SavedMovie[]>(cached?.popular ?? []);
   const [query, setQuery] = useState("");
+  // What the movies on screen were searched for (empty means they are the popular ones).
+  const [searchedFor, setSearchedFor] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<SavedMovie | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
@@ -149,6 +152,7 @@ export default function Browse() {
       const list = await loadMovies(path);
       if (!text) popular.current = list;
       setMovies(list);
+      setSearchedFor(text);
     } catch {
       setError(t("home.searchError"));
     }
@@ -218,27 +222,68 @@ export default function Browse() {
     }
   }
 
+  // The two posters shown in the collage next to the search box. Always the popular movies, even during a search.
+  const heroPosters = popular.current.filter((m) => m.poster).slice(0, 2);
+
   return (
     <div>
-      <form onSubmit={onSearch} className="mb-6 flex gap-2">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("home.searchPlaceholder")}
-          className="min-w-0 flex-1 rounded border border-slate-700 bg-slate-800 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
+      {/* The top of the page: a big heading, the search box, and a collage of two posters. */}
+      <section className="relative isolate mb-14">
+        <div
+          aria-hidden="true"
+          className="absolute -left-40 -top-24 -z-10 h-[28rem] w-[28rem] rounded-full bg-[radial-gradient(circle,rgba(80,74,121,0.35),transparent_70%)]"
         />
-        <button className="rounded bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-500">
-          {t("home.search")}
-        </button>
-      </form>
+        <div className="grid items-center gap-10 py-8 lg:grid-cols-2 lg:py-14">
+          <div>
+            <p className="font-display text-4xl uppercase leading-none sm:text-5xl lg:text-6xl">{t("home.heroLine1")}</p>
+            <h1 className="mt-1 font-display text-5xl uppercase leading-[0.95] sm:text-6xl lg:text-7xl">
+              {t("home.heroLine2")}
+            </h1>
+            <p className="mt-6 max-w-md text-lg text-muted">{t("home.heroText")}</p>
 
-      {error && <p className="mb-4 rounded bg-amber-900/40 p-4 text-amber-200">{error}</p>}
+            <form onSubmit={onSearch} role="search" className="mt-8 flex max-w-lg gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Search aria-hidden="true" className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-faint" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("home.searchPlaceholder")}
+                  aria-label={t("home.search")}
+                  className="w-full rounded-sm border border-line bg-surface py-2.5 pl-9 pr-3 text-white placeholder:text-faint focus:border-white focus:outline-none"
+                />
+              </div>
+              <button className="cursor-pointer rounded-sm bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-white/85">
+                {t("home.search")}
+              </button>
+            </form>
+          </div>
+
+          {/* Decorative: hidden on phones and tablets, where there is no room for it. */}
+          <div aria-hidden="true" className="relative hidden h-[440px] lg:block">
+            <div className="absolute bottom-0 left-16 right-0 top-10 border-l border-t border-line-strong/60" />
+            {heroPosters[1]?.poster && (
+              <img
+                src={heroPosters[1].poster.replace(IMAGE_URL, IMAGE_URL_LARGE)}
+                alt=""
+                className="absolute right-4 top-0 h-[360px] w-auto rounded-sm shadow-2xl ring-1 ring-white/10"
+              />
+            )}
+            {heroPosters[0]?.poster && (
+              <img
+                src={heroPosters[0].poster.replace(IMAGE_URL, IMAGE_URL_LARGE)}
+                alt=""
+                className="absolute bottom-0 left-28 h-[390px] w-auto rounded-sm shadow-2xl ring-1 ring-white/10"
+              />
+            )}
+          </div>
+        </div>
+      </section>
+
+      {error && <p className="mb-4 rounded-sm bg-amber-900/40 p-4 text-amber-200">{error}</p>}
 
       {notice && (
         <p
-          className={`mb-4 rounded p-3 text-sm ${
-            notice.ok ? "bg-emerald-900/40 text-emerald-200" : "bg-red-900/40 text-red-300"
-          }`}
+          className={`mb-6 rounded-sm p-3 text-sm ${notice.ok ? "bg-white/10 text-white" : "bg-red-900/40 text-red-300"}`}
         >
           {notice.text}{" "}
           {notice.linkTo && (
@@ -249,7 +294,18 @@ export default function Browse() {
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      {/* The section title: an icon, the name, and a thin line across the page. */}
+      <div className="mb-6 flex items-center gap-3">
+        {searchedFor ? <Search aria-hidden="true" className="size-6" /> : <Flame aria-hidden="true" className="size-6" />}
+        <h2 className="font-display text-3xl uppercase tracking-wide">
+          {searchedFor ? t("home.resultsFor", { query: searchedFor }) : t("home.popular")}
+        </h2>
+        <div aria-hidden="true" className="h-px flex-1 bg-line" />
+      </div>
+
+      {searchedFor && movies.length === 0 && <p className="text-muted">{t("home.noResults")}</p>}
+
+      <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {movies.map((m) => (
           <MovieCard
             key={m.id}

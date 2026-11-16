@@ -6,7 +6,7 @@ import { apiFetch } from "../lib/api";
 import type { Profile } from "../types";
 
 const inputClass =
-  "w-full rounded border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-emerald-500 focus:outline-none";
+  "w-full rounded border border-line bg-surface px-3 py-2 text-sm text-white placeholder:text-faint focus:border-white focus:outline-none";
 
 interface Props {
   // Called after saving, so the name in the top bar updates right away.
@@ -61,28 +61,28 @@ export default function Settings({ onSaved }: Props) {
   }
 
   if (loading) {
-    return <p className="text-slate-400">{t("common.loading")}</p>;
+    return <p className="text-muted">{t("common.loading")}</p>;
   }
 
   if (!loggedIn) {
     return (
-      <p className="text-slate-400">
+      <p className="text-muted">
         <Trans
           i18nKey="settings.pleaseSignIn"
-          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+          components={{ go: <Link to="/login" className="text-white hover:underline" /> }}
         />
       </p>
     );
   }
 
   return (
-    <div className="mx-auto mt-6 max-w-md rounded-lg border border-slate-800 bg-slate-900 p-6 shadow-lg">
+    <div className="mx-auto mt-6 max-w-md rounded-lg border border-line bg-page p-6 shadow-lg">
       <h1 className="mb-1 text-2xl font-bold">{t("settings.title")}</h1>
-      <p className="mb-6 text-sm text-slate-400">{t("settings.subtitle")}</p>
+      <p className="mb-6 text-sm text-muted">{t("settings.subtitle")}</p>
 
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label htmlFor="displayName" className="mb-1 block text-sm text-slate-300">
+          <label htmlFor="displayName" className="mb-1 block text-sm text-muted">
             {t("settings.displayName")}
           </label>
           <input
@@ -96,8 +96,8 @@ export default function Settings({ onSaved }: Props) {
         </div>
 
         <div>
-          <label htmlFor="username" className="mb-1 block text-sm text-slate-300">
-            {t("settings.username")} <span className="text-slate-500">{t("settings.optional")}</span>
+          <label htmlFor="username" className="mb-1 block text-sm text-muted">
+            {t("settings.username")} <span className="text-faint">{t("settings.optional")}</span>
           </label>
           <input
             id="username"
@@ -109,23 +109,23 @@ export default function Settings({ onSaved }: Props) {
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-1 block text-sm text-slate-300">
+          <label htmlFor="email" className="mb-1 block text-sm text-muted">
             {t("settings.email")}
           </label>
           <input
             id="email"
             value={email}
             readOnly
-            className={`${inputClass} cursor-not-allowed text-slate-400`}
+            className={`${inputClass} cursor-not-allowed text-muted`}
           />
         </div>
 
         {error && <p className="text-sm text-red-400">{error}</p>}
-        {saved && <p className="text-sm text-emerald-400">{t("common.saved")}</p>}
+        {saved && <p className="text-sm text-white">{t("common.saved")}</p>}
 
         <button
           type="submit"
-          className="w-full rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+          className="w-full rounded bg-white px-4 py-2 text-sm font-medium text-black hover:bg-white/85"
         >
           {t("settings.save")}
         </button>

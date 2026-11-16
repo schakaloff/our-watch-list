@@ -16,7 +16,8 @@
     "groups": "Groups",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "language": "Language"
+    "language": "Language",
+    "profile": "Profile"
   },
   "footer": {
     "credit": "This product uses the <tmdb>TMDB</tmdb> API but is not endorsed or certified by TMDB."
@@ -39,7 +40,13 @@
     "createGroupFirst": "Create a group first, then you can add movies.",
     "goToGroups": "Go to Groups",
     "addedTo": "Added \"{{movie}}\" to {{group}}.",
-    "viewList": "View list"
+    "viewList": "View list",
+    "heroLine1": "Find movies",
+    "heroLine2": "to watch together",
+    "heroText": "Search, save and rate movies with your partner.",
+    "popular": "Popular now",
+    "resultsFor": "Results for “{{query}}”",
+    "noResults": "Nothing found. Try another title."
   },
   "picker": {
     "title": "Add to which group?"
@@ -80,7 +87,8 @@
     "yourScore": "Your score",
     "yourNotes": "Your notes…",
     "myRating": "My rating:",
-    "notes": "Notes…"
+    "notes": "Notes…",
+    "rateAfterWatching": "You can rate this movie after you mark it as watched."
   },
   "settings": {
     "pleaseSignIn": "Please <go>sign in</go> to see your settings.",

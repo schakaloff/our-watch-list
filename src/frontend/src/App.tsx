@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Clapperboard } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
-import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import ProfileMenu from "./components/ProfileMenu";
 import Login from "./pages/Login";
 import Groups from "./pages/Groups";
 import GroupList from "./pages/GroupList";
@@ -11,9 +13,10 @@ import { clearCache } from "./lib/cache";
 import Browse from "./pages/Browse";
 import MyList from "./pages/MyList";
 
+// The top bar links: the page you are on is white with a line under it, the others are grey.
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium ${
-    isActive ? "bg-emerald-600 text-white" : "text-slate-300 hover:bg-slate-700"
+  `whitespace-nowrap border-b-2 px-2 py-1.5 text-sm font-medium transition-colors ${
+    isActive ? "border-white text-white" : "border-transparent text-muted hover:text-white"
   }`;
 
 export default function App() {
@@ -40,14 +43,23 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900 text-slate-100">
-      <header className="border-b border-slate-800">
+    <div className="flex min-h-screen flex-col bg-page text-white">
+      <header className="sticky top-0 z-30 border-b border-line bg-page/85 backdrop-blur">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-4">
-          <span className="mr-auto whitespace-nowrap text-lg font-bold">🎬 OurWatchList</span>
+          <Link to="/home" className="mr-auto flex items-center gap-2 whitespace-nowrap font-display text-2xl tracking-wide">
+            <Clapperboard className="size-6" aria-hidden="true" />
+            <span>
+              OurWatchList<span aria-hidden="true">.</span>
+            </span>
+          </Link>
           <NavLink to="/home" className={linkClass}>
             {t("nav.home")}
           </NavLink>
-          <NavLink to="/list" className={linkClass}>
+          {/* Stays highlighted while you are inside one of your groups (/groups/...). */}
+          <NavLink
+            to="/list"
+            className={({ isActive }) => linkClass({ isActive: isActive || location.pathname.startsWith("/groups/") })}
+          >
             {t("nav.groupList")}
           </NavLink>
           {name && (
@@ -57,17 +69,7 @@ export default function App() {
           )}
           <LanguageSwitcher />
           {name ? (
-            <>
-              <NavLink to="/settings" className={linkClass}>
-                {name}
-              </NavLink>
-              <button
-                onClick={signOut}
-                className="rounded px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-slate-700"
-              >
-                {t("nav.signOut")}
-              </button>
-            </>
+            <ProfileMenu name={name} onSignOut={signOut} />
           ) : (
             <NavLink to="/login" className={linkClass}>
               {t("nav.signIn")}
@@ -87,12 +89,12 @@ export default function App() {
         </Routes>
       </main>
       {/* TMDB's terms require this credit wherever their data is used. */}
-      <footer className="border-t border-slate-800 px-4 py-4 text-center text-xs text-slate-500">
+      <footer className="border-t border-line px-4 py-5 text-center text-xs text-faint">
         <Trans
           i18nKey="footer.credit"
           components={{
             tmdb: (
-              <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="underline hover:text-slate-300" />
+              <a href="https://www.themoviedb.org" target="_blank" rel="noreferrer" className="underline hover:text-white" />
             ),
           }}
         />

@@ -17,28 +17,28 @@ export default function GroupPicker({ movieTitle, groups, onPick, onClose }: Pro
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-lg bg-slate-800 p-6"
+        className="w-full max-w-sm rounded-lg bg-surface p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-1 text-lg font-bold">{t("picker.title")}</h2>
-        <p className="mb-4 truncate text-sm text-slate-400">{movieTitle}</p>
+        <p className="mb-4 truncate text-sm text-muted">{movieTitle}</p>
 
         <div className="space-y-2">
           {groups.map((g) => (
             <button
               key={g.id}
               onClick={() => onPick(g)}
-              className="w-full rounded bg-slate-700 px-4 py-3 text-left hover:bg-slate-600"
+              className="w-full rounded bg-surface-2 px-4 py-3 text-left hover:bg-surface-2"
             >
               <span className="block font-medium">{g.name}</span>
-              <span className="block text-xs text-slate-400">
+              <span className="block text-xs text-muted">
                 {g.members.map((m) => m.displayName).join(" & ")}
               </span>
             </button>
           ))}
         </div>
 
-        <button onClick={onClose} className="mt-4 text-sm text-slate-400 hover:text-white">
+        <button onClick={onClose} className="mt-4 text-sm text-muted hover:text-white">
           {t("common.cancel")}
         </button>
       </div>

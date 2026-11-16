@@ -150,15 +150,15 @@ export default function GroupList() {
   }
 
   if (state === "loading") {
-    return <p className="text-slate-400">{t("common.loading")}</p>;
+    return <p className="text-muted">{t("common.loading")}</p>;
   }
 
   if (state === "loggedOut") {
     return (
-      <p className="text-slate-400">
+      <p className="text-muted">
         <Trans
           i18nKey="list.pleaseSignIn"
-          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+          components={{ go: <Link to="/login" className="text-white hover:underline" /> }}
         />
       </p>
     );
@@ -168,10 +168,10 @@ export default function GroupList() {
 
   if (state === "notFound" || !group) {
     return (
-      <p className="text-slate-400">
+      <p className="text-muted">
         <Trans
           i18nKey="list.notFound"
-          components={{ go: <Link to="/groups" className="text-emerald-400 hover:underline" /> }}
+          components={{ go: <Link to="/groups" className="text-white hover:underline" /> }}
         />
       </p>
     );
@@ -188,19 +188,19 @@ export default function GroupList() {
           {group.owner && (
             <button
               onClick={() => removeGroup(group.name)}
-              className="rounded border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-400 hover:border-red-700 hover:text-red-400"
+              className="rounded border border-line px-3 py-1.5 text-xs font-medium text-muted hover:border-red-700 hover:text-red-400"
             >
               {t("groups.deleteGroup")}
             </button>
           )}
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted">
           {group.members.map((m) => m.displayName).join(" & ")}
           {group.members.length < 2 && (
             <span>
               {" "}
               · {t("list.waitingForPartner")}{" "}
-              <span className="font-mono tracking-widest text-emerald-400">{group.inviteCode}</span>
+              <span className="font-mono tracking-widest text-white">{group.inviteCode}</span>
             </span>
           )}
         </p>
@@ -213,7 +213,7 @@ export default function GroupList() {
                 key={g.id}
                 to={`/groups/${g.id}`}
                 className={`rounded px-3 py-1 text-xs font-medium ${
-                  g.id === groupId ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  g.id === groupId ? "bg-white text-black" : "bg-surface text-muted hover:bg-surface-2"
                 }`}
               >
                 {g.name}
@@ -229,7 +229,7 @@ export default function GroupList() {
             key={tab_.key}
             onClick={() => setTab(tab_.key)}
             className={`rounded px-4 py-2 text-sm font-medium ${
-              tab === tab_.key ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              tab === tab_.key ? "bg-white text-black" : "bg-surface text-muted hover:bg-surface-2"
             }`}
           >
             {t(tab_.label)} ({movies.filter((m) => m.status === tab_.key).length})
@@ -240,14 +240,14 @@ export default function GroupList() {
       {error && <p className="mb-4 rounded bg-red-900/40 p-3 text-sm text-red-300">{error}</p>}
 
       {shown.length === 0 ? (
-        <p className="text-slate-400">
+        <p className="text-muted">
           <Trans
             i18nKey="list.empty"
-            components={{ go: <Link to="/home" className="text-emerald-400 hover:underline" /> }}
+            components={{ go: <Link to="/home" className="text-white hover:underline" /> }}
           />
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {shown.map((m) => (
             <GroupMovieCard
               key={m.id}

@@ -37,25 +37,25 @@ export default function MyList() {
   }
 
   if (state === "loading") {
-    return <p className="text-slate-400">{t("common.loading")}</p>;
+    return <p className="text-muted">{t("common.loading")}</p>;
   }
 
   if (state === "loggedOut") {
     return (
-      <p className="text-slate-400">
+      <p className="text-muted">
         <Trans
           i18nKey="list.pleaseSignIn"
-          components={{ go: <Link to="/login" className="text-emerald-400 hover:underline" /> }}
+          components={{ go: <Link to="/login" className="text-white hover:underline" /> }}
         />
       </p>
     );
   }
 
   return (
-    <p className="text-slate-400">
+    <p className="text-muted">
       <Trans
         i18nKey="list.notInGroup"
-        components={{ go: <Link to="/groups" className="text-emerald-400 hover:underline" /> }}
+        components={{ go: <Link to="/groups" className="text-white hover:underline" /> }}
       />
     </p>
   );

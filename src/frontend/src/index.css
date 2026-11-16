@@ -1,1 +1,43 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/oswald";
+
+/* The look of the site: a near-black page, white text and accents, and two fonts.
+   Inter for normal text, Oswald (tall, condensed) for headings. Both include Cyrillic, so Russian matches English. */
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald Variable", "Oswald", ui-sans-serif, system-ui, sans-serif;
+
+  --color-page: #030303;      /* the page background */
+  --color-surface: #0d0d12;   /* cards and popups */
+  --color-surface-2: #1a1a22; /* inputs, buttons, hover states */
+  --color-line: #2c2944;      /* thin borders and divider lines */
+  --color-line-strong: #504a79;
+  --color-muted: #c9c9c9;     /* secondary text */
+  --color-faint: #8d8d99;     /* hints and placeholders */
+}
+
+@layer base {
+  body {
+    background-color: var(--color-page);
+    color: #fff;
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2 {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+  }
+
+  ::selection {
+    background: #fff;
+    color: #030303;
+  }
+
+  /* A visible outline when moving around with the keyboard. */
+  :focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+  }
+}
