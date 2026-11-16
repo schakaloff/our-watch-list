@@ -1,15 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <title>Our Watch List</title>
-  <!-- A white clapperboard on a dark rounded square, so it shows on light and dark browser tabs -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="OurWatchList">
   <rect width="64" height="64" rx="14" fill="#030303"/>
-  <rect x="12" y="29" width="40" height="23" rx="3" fill="#fff"/>
-  <g transform="rotate(-14 13 27)">
-    <clipPath id="clapper"><rect x="12" y="15" width="40" height="11" rx="2.5"/></clipPath>
-    <rect x="12" y="15" width="40" height="11" rx="2.5" fill="#fff"/>
-    <g clip-path="url(#clapper)" fill="#030303">
-      <path d="M19 15h6.5l-5.5 11h-6.5z"/>
-      <path d="M32.5 15H39l-5.5 11H27z"/>
-      <path d="M46 15h6.5L47 26h-6.5z"/>
-    </g>
+  <g transform="translate(32 32) scale(0.96) translate(-32 -32)">
+    <rect x="4" y="8" width="38" height="30" rx="7" fill="#FFFFFF"/>
+    <rect x="25.5" y="29.5" width="31" height="23" rx="3.5" fill="#030303" stroke="#030303" stroke-width="13"/>
+    <rect x="25.5" y="29.5" width="31" height="23" rx="3.5" fill="none" stroke="#FFFFFF" stroke-width="7"/>
   </g>
 </svg>

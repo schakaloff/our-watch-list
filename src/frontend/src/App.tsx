@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Clapperboard } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "./components/LanguageSwitcher";
@@ -46,11 +45,9 @@ export default function App() {
     <div className="flex min-h-screen flex-col bg-page text-white">
       <header className="sticky top-0 z-30 border-b border-line bg-page/85 backdrop-blur">
         <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-4">
-          <Link to="/home" className="mr-auto flex items-center gap-2 whitespace-nowrap font-display text-2xl tracking-wide">
-            <Clapperboard className="size-6" aria-hidden="true" />
-            <span>
-              OurWatchList<span aria-hidden="true">.</span>
-            </span>
+          {/* The logo: two overlapping screens and the name. It is a picture, so it keeps its exact shape. */}
+          <Link to="/home" className="mr-auto flex items-center" aria-label="OurWatchList">
+            <img src="/logo.svg" alt="OurWatchList" className="h-6 w-auto sm:h-8" />
           </Link>
           <NavLink to="/home" className={linkClass}>
             {t("nav.home")}
