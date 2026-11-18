@@ -16,6 +16,7 @@ import com.ourwatchlist.backend.dto.MovieDtos.AddMovieRequest;
 import com.ourwatchlist.backend.dto.MovieDtos.MovieResponse;
 import com.ourwatchlist.backend.dto.MovieDtos.RatingResponse;
 import com.ourwatchlist.backend.entity.GroupMovie;
+import com.ourwatchlist.backend.entity.MovieText;
 import com.ourwatchlist.backend.entity.Rating;
 import com.ourwatchlist.backend.exception.ApiException;
 import com.ourwatchlist.backend.repository.GroupMovieRepository;
@@ -27,16 +28,22 @@ public class GroupMovieService {
     private final GroupService groupService;
     private final GroupMovieRepository movies;
     private final RatingRepository ratings;
+    private final MovieTextService movieTexts;
 
     // Spring passes in what this service needs.
-    public GroupMovieService(GroupService groupService, GroupMovieRepository movies, RatingRepository ratings) {
+    public GroupMovieService(GroupService groupService, GroupMovieRepository movies, RatingRepository ratings,
+            MovieTextService movieTexts) {
         this.groupService = groupService;
         this.movies = movies;
         this.ratings = ratings;
+        this.movieTexts = movieTexts;
     }
 
     // The group's whole list, newest first, with everyone's ratings on each movie.
-    public List<MovieResponse> list(UUID userId, UUID groupId) {
+    // The title, description and poster come in the given language from the text we saved for each movie
+    // (see MovieTextService). A movie with no saved text yet shows the copy saved when it was added,
+    // and its text is fetched in the background for next time. TMDB is never called while showing a list.
+    public List<MovieResponse> list(UUID userId, UUID groupId, String language) {
         // Checks membership and loads the names in one go.
         Map<UUID, String> names = groupService.memberNames(userId, groupId);
 
@@ -54,8 +61,10 @@ public class GroupMovieService {
                     .add(new RatingResponse(r.getUserId(), names.get(r.getUserId()), r.getScore(), r.getNotes()));
         }
 
+        Map<Integer, MovieText> texts = movieTexts.textsFor(list.stream().map(GroupMovie::getTmdbId).toList(), language);
+
         return list.stream()
-                .map(m -> toResponse(m, ratingsByMovie.getOrDefault(m.getId(), List.of())))
+                .map(m -> toResponse(m, texts.get(m.getTmdbId()), ratingsByMovie.getOrDefault(m.getId(), List.of())))
                 .toList();
     }
 
@@ -71,6 +80,8 @@ public class GroupMovieService {
         try {
             GroupMovie saved = movies.save(new GroupMovie(groupId, request.tmdbId(), request.title().trim(),
                     request.posterPath(), request.releaseYear(), request.tmdbRating(), request.overview(), userId));
+            // Keep the movie's English and Russian text in our database, so lists never need to wait for TMDB.
+            movieTexts.saveBothLanguages(request.tmdbId());
             return toResponse(saved, List.of());
         } catch (DataIntegrityViolationException e) {
             throw new ApiException(HttpStatus.CONFLICT, "This movie is already on your list");
@@ -102,9 +113,19 @@ public class GroupMovieService {
     }
 
     // Turns a movie into the shape the frontend receives.
+    // Turns a movie into the shape the frontend receives, with no TMDB text (used right after adding or changing one).
     private MovieResponse toResponse(GroupMovie m, List<RatingResponse> movieRatings) {
-        return new MovieResponse(m.getId(), m.getTmdbId(), m.getTitle(), m.getPosterPath(),
-                m.getReleaseYear(), m.getTmdbRating(), m.getOverview(), m.getStatus(),
+        return toResponse(m, null, movieRatings);
+    }
+
+    // Same, but takes the title, description and poster from the saved text in the user's language when we have it.
+    // Anything missing there stays as saved with the movie.
+    private MovieResponse toResponse(GroupMovie m, MovieText text, List<RatingResponse> movieRatings) {
+        String title = text != null && text.getTitle() != null && !text.getTitle().isBlank() ? text.getTitle() : m.getTitle();
+        String overview = text != null && text.getOverview() != null && !text.getOverview().isBlank() ? text.getOverview() : m.getOverview();
+        String poster = text != null && text.getPosterPath() != null ? text.getPosterPath() : m.getPosterPath();
+        return new MovieResponse(m.getId(), m.getTmdbId(), title, poster,
+                m.getReleaseYear(), m.getTmdbRating(), overview, m.getStatus(),
                 m.getAddedBy(), m.getAddedAt(), m.getWatchedAt(), movieRatings);
     }
 }

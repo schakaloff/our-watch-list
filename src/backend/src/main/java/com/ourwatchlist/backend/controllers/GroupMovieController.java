@@ -5,7 +5,9 @@ package com.ourwatchlist.backend.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +28,7 @@ import com.ourwatchlist.backend.dto.MovieDtos.RatingResponse;
 import com.ourwatchlist.backend.dto.MovieDtos.StatusRequest;
 import com.ourwatchlist.backend.dto.SupabaseUser;
 import com.ourwatchlist.backend.services.GroupMovieService;
+import com.ourwatchlist.backend.services.Languages;
 import com.ourwatchlist.backend.services.RatingService;
 
 @RestController
@@ -40,10 +44,13 @@ public class GroupMovieController {
         this.ratingService = ratingService;
     }
 
-    // Handles GET /api/groups/{groupId}/movies. The group's list with everyone's ratings.
+    // Handles GET /api/groups/{groupId}/movies. The group's list with everyone's ratings,
+    // with the movie texts in the language the browser asks for (Accept-Language).
     @GetMapping
-    public List<MovieResponse> list(@AuthenticationPrincipal SupabaseUser user, @PathVariable UUID groupId) {
-        return movieService.list(UUID.fromString(user.id()), groupId);
+    public ResponseEntity<List<MovieResponse>> list(@AuthenticationPrincipal SupabaseUser user, @PathVariable UUID groupId,
+            @RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
+        List<MovieResponse> list = movieService.list(UUID.fromString(user.id()), groupId, Languages.tmdbCode(acceptLanguage));
+        return ResponseEntity.ok().header(HttpHeaders.VARY, HttpHeaders.ACCEPT_LANGUAGE).body(list);
     }
 
     // Handles POST /api/groups/{groupId}/movies. Adds a movie to the list.

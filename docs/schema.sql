@@ -54,6 +54,19 @@ create table ratings (
   primary key (group_movie_id, user_id)
 );
 
+-- A movie's title, description and poster in each language we support, copied from TMDB once.
+-- Showing a list then needs only our own database, never a call to TMDB.
+-- One row per movie and language, shared by every group that saved the movie.
+create table movie_texts (
+  tmdb_id     integer not null,
+  language    text    not null check (language in ('en', 'ru')),
+  title       text    not null,
+  overview    text,
+  poster_path text,
+  fetched_at  timestamptz not null default now(),   -- lets us refresh old text later
+  primary key (tmdb_id, language)
+);
+
 -- Only our backend (which connects directly to the database) should read these tables.
 -- With security turned on and no policies, Supabase's public web API sees nothing.
 alter table profiles      enable row level security;
@@ -61,3 +74,4 @@ alter table groups        enable row level security;
 alter table group_members enable row level security;
 alter table group_movies  enable row level security;
 alter table ratings       enable row level security;
+alter table movie_texts   enable row level security;

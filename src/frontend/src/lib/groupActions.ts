@@ -1,7 +1,8 @@
 // Things you can do to a whole group.
 import i18n from "../i18n";
 import { apiFetch } from "./api";
-import { forget } from "./cache";
+import { forget, forgetPrefix } from "./cache";
+import { moviesKeyPrefix } from "./language";
 
 // Deletes the group on the backend. Returns an error message, or null if it worked.
 // On success it also forgets the remembered pages that mention the group.
@@ -15,8 +16,8 @@ export async function deleteGroup(groupId: string): Promise<string | null> {
     return i18n.t("common.serverUnreachable");
   }
 
-  forget(`movies:${groupId}`);
+  forgetPrefix(moviesKeyPrefix(groupId));
   forget("groups");
-  forget("home");
+  forgetPrefix("home:");
   return null;
 }

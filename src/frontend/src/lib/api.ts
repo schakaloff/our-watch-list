@@ -1,5 +1,7 @@
 // A small wrapper around fetch for calling our backend.
+// Every request says which language the site is in (Accept-Language), so movie titles and descriptions come back in it.
 // For anything that changes data (POST, PUT, PATCH, DELETE) it adds the CSRF token the backend requires.
+import { currentLanguage } from "./language";
 
 // Reads the XSRF-TOKEN cookie the backend gives us on every GET request.
 function csrfToken(): string {
@@ -15,7 +17,7 @@ interface Options {
 // Sends a request to the backend. Pass a body as a plain object and it is sent as JSON.
 export function apiFetch(path: string, options: Options = {}): Promise<Response> {
   const method = options.method ?? "GET";
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { "Accept-Language": currentLanguage() };
 
   if (options.body !== undefined) {
     headers["Content-Type"] = "application/json";

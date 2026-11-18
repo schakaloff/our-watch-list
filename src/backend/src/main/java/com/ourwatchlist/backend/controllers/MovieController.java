@@ -4,12 +4,16 @@ package com.ourwatchlist.backend.controllers;
 
 import java.util.List;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ourwatchlist.backend.dto.TmdbMovie;
+import com.ourwatchlist.backend.services.Languages;
 import com.ourwatchlist.backend.services.TmdbService;
 
 @RestController
@@ -24,16 +28,22 @@ public class MovieController {
     }
 
     // Handles GET /api/movies/popular.
-    // Returns the list of popular movies. The home page shows these first.
+    // Returns the list of popular movies, in the language the browser asks for (Accept-Language).
+    // "Vary" tells caches that the answer depends on that language.
     @GetMapping("/popular")
-    public List<TmdbMovie> popular() {
-        return tmdb.getPopular();
+    public ResponseEntity<List<TmdbMovie>> popular(@RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_LANGUAGE)
+                .body(tmdb.getPopular(Languages.tmdbCode(acceptLanguage)));
     }
 
     // Handles GET /api/movies/search?query=batman.
-    // Returns the movies whose title matches the text in "query".
+    // Returns the movies whose title matches the text in "query" (in any language), shown in the browser's language.
     @GetMapping("/search")
-    public List<TmdbMovie> search(@RequestParam String query) {
-        return tmdb.search(query);
+    public ResponseEntity<List<TmdbMovie>> search(@RequestParam String query,
+            @RequestHeader(name = "Accept-Language", required = false) String acceptLanguage) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.VARY, HttpHeaders.ACCEPT_LANGUAGE)
+                .body(tmdb.search(query, Languages.tmdbCode(acceptLanguage)));
     }
 }

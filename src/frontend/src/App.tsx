@@ -3,6 +3,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import ProfileMenu from "./components/ProfileMenu";
+import WebBackground from "./components/WebBackground";
 import Login from "./pages/Login";
 import Groups from "./pages/Groups";
 import GroupList from "./pages/GroupList";
@@ -42,9 +43,11 @@ export default function App() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-page text-white">
+    <div className="flex min-h-screen flex-col text-white">
+      {/* The animated web behind everything. The page color comes from the body, so the web can show through. */}
+      <WebBackground />
       <header className="sticky top-0 z-30 border-b border-line bg-page/85 backdrop-blur">
-        <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-4">
+        <nav className="mx-auto flex max-w-6xl font-display flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-4">
           {/* The logo: two overlapping screens and the name. It is a picture, so it keeps its exact shape. */}
           <Link to="/home" className="mr-auto flex items-center" aria-label="OurWatchList">
             <img src="/logo.svg" alt="OurWatchList" className="h-6 w-auto sm:h-8" />

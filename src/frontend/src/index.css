@@ -1,12 +1,12 @@
 @import "tailwindcss";
 @import "@fontsource-variable/inter";
-@import "@fontsource-variable/oswald";
+@import "@fontsource-variable/montserrat";
 
 /* The look of the site: a near-black page, white text and accents, and two fonts.
-   Inter for normal text, Oswald (tall, condensed) for headings. Both include Cyrillic, so Russian matches English. */
+   Inter for normal text, Montserrat (geometric, bold) for headings. Both include Cyrillic, so Russian matches English. */
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Oswald Variable", "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Montserrat Variable", "Montserrat", ui-sans-serif, system-ui, sans-serif;
 
   --color-page: #030303;      /* the page background */
   --color-surface: #0d0d12;   /* cards and popups */

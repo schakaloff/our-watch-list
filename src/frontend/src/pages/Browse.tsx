@@ -7,8 +7,9 @@ import GroupPicker from "../components/GroupPicker";
 import MovieCard from "../components/MovieCard";
 import MovieDetailModal from "../components/MovieDetailModal";
 import { apiFetch } from "../lib/api";
-import { forget, setCached } from "../lib/cache";
+import { forgetPrefix, setCached } from "../lib/cache";
 import { getHomeData, setHomeData } from "../lib/homeCache";
+import { currentLanguage, moviesKeyPrefix } from "../lib/language";
 import { IMAGE_URL, IMAGE_URL_LARGE } from "../lib/tmdb";
 import type { Group, SavedMovie } from "../types";
 
@@ -44,9 +45,10 @@ function toMovie(m: ApiMovie): SavedMovie {
   };
 }
 
-// Asks the backend for a list of movies (popular or search results).
+// Asks the backend for a list of movies (popular or search results). The request says which language the site is in,
+// so the titles and descriptions come back in it.
 async function loadMovies(path: string): Promise<SavedMovie[]> {
-  const res = await fetch(path);
+  const res = await apiFetch(path);
   if (!res.ok) throw new Error("Could not load movies");
   const data: ApiMovie[] = await res.json();
   return data.map(toMovie);
@@ -54,12 +56,16 @@ async function loadMovies(path: string): Promise<SavedMovie[]> {
 
 export default function Browse() {
   const { t } = useTranslation();
-  // If the home page was open earlier, start from what it knew then, so nothing flashes or waits.
-  const cached = getHomeData() ?? null;
+  const language = currentLanguage();
+  // If the home page was open earlier (in this language), start from what it knew then, so nothing flashes or waits.
+  const cached = getHomeData(language) ?? null;
 
   const [movies, setMovies] = useState<SavedMovie[]>(cached?.popular ?? []);
   // The popular movies only (not search results), which are what we remember for the next visit.
   const popular = useRef<SavedMovie[]>(cached?.popular ?? []);
+  // The language the movies on screen are really in. It changes only once the movies of the new language have been asked for,
+  // so what we remember is always filed under the language it came from.
+  const shownLanguage = useRef(language);
   const [query, setQuery] = useState("");
   // What the movies on screen were searched for (empty means they are the popular ones).
   const [searchedFor, setSearchedFor] = useState("");
@@ -109,7 +115,7 @@ export default function Browse() {
   // Remember what we know, so the next visit to this page starts with it.
   useEffect(() => {
     if (savedLoaded) {
-      setHomeData({ popular: popular.current, groups, savedIn, loggedIn });
+      setHomeData(shownLanguage.current, { popular: popular.current, groups, savedIn, loggedIn });
     }
   }, [movies, groups, savedIn, loggedIn, savedLoaded]);
 
@@ -137,6 +143,31 @@ export default function Browse() {
       .catch(() => setError(t("home.loadError")));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // When you switch language, load the movies again in the new language (TMDB sends titles and descriptions
+  // in the language we ask for). A search is repeated with the same words. Popular movies that were
+  // already loaded in that language are shown straight away.
+  useEffect(() => {
+    if (shownLanguage.current === language) return;
+    shownLanguage.current = language;
+
+    setError(null);
+    const known = getHomeData(language);
+    if (!searchedFor && known && known.popular.length > 0) {
+      popular.current = known.popular;
+      setMovies(known.popular);
+      return;
+    }
+
+    const path = searchedFor ? `/api/movies/search?query=${encodeURIComponent(searchedFor)}` : "/api/movies/popular";
+    loadMovies(path)
+      .then((list) => {
+        if (!searchedFor) popular.current = list;
+        setMovies(list);
+      })
+      .catch(() => setError(t("home.loadError")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
   // Search for what the user typed. An empty search shows the popular movies again.
   async function onSearch(e: FormEvent) {
@@ -185,7 +216,7 @@ export default function Browse() {
     setPicker(null);
     markAdded(group.id, movie.id, true);
     // That group's list is about to change, so any remembered copy of it is out of date.
-    forget(`movies:${group.id}`);
+    forgetPrefix(moviesKeyPrefix(group.id));
 
     try {
       const res = await apiFetch(`/api/groups/${group.id}/movies`, {
@@ -235,8 +266,8 @@ export default function Browse() {
         />
         <div className="grid items-center gap-10 py-8 lg:grid-cols-2 lg:py-14">
           <div>
-            <p className="font-display text-4xl uppercase leading-none sm:text-5xl lg:text-6xl">{t("home.heroLine1")}</p>
-            <h1 className="mt-1 font-display text-5xl uppercase leading-[0.95] sm:text-6xl lg:text-7xl">
+            <p className="font-display text-3xl font-semibold uppercase leading-none sm:text-5xl lg:text-6xl">{t("home.heroLine1")}</p>
+            <h1 className="mt-1 font-display text-4xl font-bold uppercase leading-[1] sm:text-5xl lg:text-6xl">
               {t("home.heroLine2")}
             </h1>
             <p className="mt-6 max-w-md text-lg text-muted">{t("home.heroText")}</p>
@@ -297,7 +328,7 @@ export default function Browse() {
       {/* The section title: an icon, the name, and a thin line across the page. */}
       <div className="mb-6 flex items-center gap-3">
         {searchedFor ? <Search aria-hidden="true" className="size-6" /> : <Flame aria-hidden="true" className="size-6" />}
-        <h2 className="font-display text-3xl uppercase tracking-wide">
+        <h2 className="font-display text-2xl font-semibold uppercase tracking-wide sm:text-3xl">
           {searchedFor ? t("home.resultsFor", { query: searchedFor }) : t("home.popular")}
         </h2>
         <div aria-hidden="true" className="h-px flex-1 bg-line" />

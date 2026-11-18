@@ -4,8 +4,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import GroupMovieCard from "../components/GroupMovieCard";
 import GroupMovieModal from "../components/GroupMovieModal";
 import { apiFetch } from "../lib/api";
-import { forget, getCached, setCached } from "../lib/cache";
+import { forgetPrefix, getCached, setCached } from "../lib/cache";
 import { deleteGroup } from "../lib/groupActions";
+import { currentLanguage, moviesKey } from "../lib/language";
 import type { Group, GroupMovie, MemberRating, Status } from "../types";
 
 // The label is a translation key, looked up when the tabs are drawn.
@@ -19,10 +20,12 @@ export default function GroupList() {
   const { t } = useTranslation();
   const { groupId } = useParams();
   const navigate = useNavigate();
+  // The movie titles and descriptions come from TMDB in this language, so what we remember is kept per language.
+  const language = currentLanguage();
 
   // Start from what we saw last time, so the page does not wait for the backend.
   const cachedGroups = getCached<Group[]>("groups");
-  const cachedMovies = getCached<GroupMovie[]>(`movies:${groupId}`);
+  const cachedMovies = getCached<GroupMovie[]>(moviesKey(groupId, language));
 
   const [groups, setGroups] = useState<Group[]>(cachedGroups ?? []);
   const [movies, setMovies] = useState<GroupMovie[]>(cachedMovies ?? []);
@@ -56,7 +59,7 @@ export default function GroupList() {
     const groupList: Group[] = await groupsRes.json();
     const movieList: GroupMovie[] = await moviesRes.json();
     setCached("groups", groupList);
-    setCached(`movies:${groupId}`, movieList);
+    setCached(moviesKey(groupId, language), movieList);
     if (meRes && meRes.ok) {
       const me: { id: string } = await meRes.json();
       setCached("myId", me.id);
@@ -65,12 +68,13 @@ export default function GroupList() {
     setGroups(groupList);
     setMovies(movieList);
     setState("ready");
-  }, [groupId]);
+  }, [groupId, language]);
 
-  // Runs when the page opens or you switch to another group.
+  // Runs when the page opens, when you switch to another group, or when you switch language.
+  // (The data is loaded again in the new language.)
   useEffect(() => {
     const knownGroups = getCached<Group[]>("groups");
-    const knownMovies = getCached<GroupMovie[]>(`movies:${groupId}`);
+    const knownMovies = getCached<GroupMovie[]>(moviesKey(groupId, language));
     if (knownGroups && knownMovies) {
       // Show what we remember straight away; fresh data replaces it when it arrives.
       setGroups(knownGroups);
@@ -80,12 +84,12 @@ export default function GroupList() {
       setState("loading");
     }
     load();
-  }, [load, groupId]);
+  }, [load, groupId, language]);
 
   // Keeps the memory in step with changes made on this page.
   function updateMovies(next: GroupMovie[]) {
     setMovies(next);
-    setCached(`movies:${groupId}`, next);
+    setCached(moviesKey(groupId, language), next);
   }
 
   // Deletes this whole group after asking, then goes back to the list of groups.
@@ -140,7 +144,7 @@ export default function GroupList() {
     setError(null);
     updateMovies(movies.filter((m) => m.id !== movie.id));
     // The home page remembers which movies are added; it must learn this one is gone.
-    forget("home");
+    forgetPrefix("home:");
 
     const res = await apiFetch(`/api/groups/${groupId}/movies/${movie.id}`, { method: "DELETE" });
     if (!res.ok) {

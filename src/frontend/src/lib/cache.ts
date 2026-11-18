@@ -17,6 +17,13 @@ export function forget(key: string): void {
   store.delete(key);
 }
 
+// Forgets everything whose name starts with this text (for example all languages of one group's movies).
+export function forgetPrefix(prefix: string): void {
+  for (const key of [...store.keys()]) {
+    if (key.startsWith(prefix)) store.delete(key);
+  }
+}
+
 // Forgets everything. Called on login and logout so one person never sees another's data.
 export function clearCache(): void {
   store.clear();
